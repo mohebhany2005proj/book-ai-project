@@ -1,0 +1,38 @@
+{
+  "name": "book-ai-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Book AI project with RAG capabilities",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "node --max-old-space-size=8192 node_modules/ts-node-dev/lib/bin.js --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "start": "node --max-old-space-size=8192 dist/server.js",
+    "clean": "rimraf dist"
+  },
+  "keywords": ["ai", "rag", "langchain", "book", "chat"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "multer": "^1.4.5-lts.1",
+    "langchain": "^0.1.0",
+    "@langchain/community": "^0.0.20",
+    "chromadb": "^1.7.3",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.6.0",
+    "axios": "^1.6.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/multer": "^1.4.11",
+    "@types/node": "^20.10.5",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.3.3",
+    "ts-node-dev": "^2.0.0",
+    "rimraf": "^5.0.5"
+  }
+}

@@ -47,8 +47,8 @@ export default function ChatPage() {
     setMessages([...messages, userMessage]);
 
     try {
-      // Get AI response
-      const response = await chatApi.sendMessage(bookId, message);
+      // Get AI response with conversation history (last 5 messages)
+      const response = await chatApi.sendMessage(bookId, message, messages.slice(-5));
 
       // Add AI message
       const aiMessage: ChatMessage = {

@@ -18,6 +18,7 @@ export interface ChatMessage {
 export interface ChatRequest {
   bookId: string;
   message: string;
+  conversationHistory?: ChatMessage[];
 }
 
 export interface ChatResponse {

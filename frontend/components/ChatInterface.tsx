@@ -24,6 +24,11 @@ export default function ChatInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Detect if text contains Arabic characters
+  const isArabic = (text: string): boolean => {
+    return /[\u0600-\u06FF]/.test(text);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -94,8 +99,9 @@ export default function ChatInterface({
                     ? 'bg-primary-600 text-white'
                     : 'bg-gray-100 text-gray-900'
                 }`}
+                dir={isArabic(message.content) ? 'rtl' : 'ltr'}
               >
-                <div className="flex items-start space-x-2">
+                <div className={`flex items-start ${isArabic(message.content) ? 'space-x-reverse' : ''} space-x-2`}>
                   {message.role === 'assistant' && (
                     <div className="flex-shrink-0 mt-1">
                       <svg
@@ -109,7 +115,7 @@ export default function ChatInterface({
                   )}
                   <div className="flex-1">
                     {message.role === 'assistant' ? (
-                      <div className="prose prose-sm max-w-none">
+                      <div className="prose prose-sm max-w-none" dir={isArabic(message.content) ? 'rtl' : 'ltr'}>
                         <ReactMarkdown>{message.content}</ReactMarkdown>
                       </div>
                     ) : (
@@ -140,8 +146,9 @@ export default function ChatInterface({
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a question about the book..."
+            placeholder="Ask a question about the book... / اسأل سؤالاً عن الكتاب..."
             disabled={sending}
+            dir={isArabic(input) ? 'rtl' : 'ltr'}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
           />
           <button

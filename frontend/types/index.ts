@@ -19,6 +19,12 @@ export interface ChatResponse {
   bookTitle: string;
 }
 
+export interface ChatRequest {
+  bookId: string;
+  message: string;
+  conversationHistory?: ChatMessage[];
+}
+
 export interface UploadResponse {
   success: boolean;
   book?: Book;

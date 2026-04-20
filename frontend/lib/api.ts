@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { Book, ChatResponse, UploadResponse, ErrorResponse } from '../types';
+import { Book, ChatResponse, UploadResponse, ErrorResponse, ChatMessage } from '../types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -99,13 +99,18 @@ export const bookApi = {
 // Chat API
 export const chatApi = {
   /**
-   * Send a chat message
+   * Send a chat message with optional conversation history
    */
-  sendMessage: async (bookId: string, message: string): Promise<ChatResponse> => {
+  sendMessage: async (
+    bookId: string,
+    message: string,
+    conversationHistory?: ChatMessage[]
+  ): Promise<ChatResponse> => {
     try {
       const response = await api.post<ChatResponse>('/api/chat', {
         bookId,
         message,
+        conversationHistory,
       });
 
       return response.data;

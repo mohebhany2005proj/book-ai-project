@@ -11,7 +11,7 @@ import { corsOptions } from './config/cors';
 dotenv.config();
 
 const app: Application = express();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // In-memory storage for books (shared across controllers)
 const books = new Map();
@@ -62,13 +62,13 @@ const startServer = async () => {
     // Using Simple Vector Store (no ChromaDB initialization needed)
     console.log('💾 Using Simple Vector Store (JSON-based)...');
 
-    // Start server
-    app.listen(PORT, () => {
+    // Start server - bind to 0.0.0.0 for Railway/cloud deployment
+    app.listen(PORT, '0.0.0.0', () => {
       console.log('\n✅ Server started successfully!\n');
-      console.log(`📍 Server running on: http://localhost:${PORT}`);
-      console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-      console.log(`📚 Books API: http://localhost:${PORT}/api/books`);
-      console.log(`💬 Chat API: http://localhost:${PORT}/api/chat`);
+      console.log(`📍 Server running on port: ${PORT}`);
+      console.log(`🏥 Health check: /health`);
+      console.log(`📚 Books API: /api/books`);
+      console.log(`💬 Chat API: /api/chat`);
       console.log('\n📖 Ready to process books!\n');
     });
   } catch (error) {

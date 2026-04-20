@@ -18,6 +18,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     loadBook();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookId]);
 
   const loadBook = async () => {

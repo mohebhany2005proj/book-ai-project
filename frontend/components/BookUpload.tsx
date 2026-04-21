@@ -86,12 +86,12 @@ export default function BookUpload({ onUploadSuccess }: BookUploadProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+        className={`border border-gray-300 p-12 text-center transition-elegant ${
           dragActive
-            ? 'border-primary-500 bg-primary-50'
-            : 'border-gray-300 hover:border-primary-400'
+            ? 'border-gray-900 bg-gray-50'
+            : 'hover:border-gray-400'
         } ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -110,46 +110,48 @@ export default function BookUpload({ onUploadSuccess }: BookUploadProps) {
         
         <label
           htmlFor="file-upload"
-          className="cursor-pointer"
+          className="cursor-pointer block"
         >
-          <div className="space-y-2">
+          <div className="space-y-4">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="mx-auto h-12 w-12 text-gray-300"
               stroke="currentColor"
               fill="none"
               viewBox="0 0 48 48"
+              strokeWidth="1"
             >
               <path
                 d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </svg>
-            <div className="text-gray-600">
-              <span className="font-semibold text-primary-600 hover:text-primary-500">
-                Click to upload
-              </span>{' '}
-              or drag and drop
+            <div className="space-y-1">
+              <p className="text-sm text-gray-900">
+                <span className="hover:text-gray-600 transition-elegant">
+                  Click to upload
+                </span>
+                {' '}or drag and drop
+              </p>
+              <p className="text-xs text-gray-500 tracking-wide">
+                PDF, TXT, or DOCX (max 50MB)
+              </p>
             </div>
-            <p className="text-xs text-gray-500">
-              PDF, TXT, or DOCX (max 50MB)
-            </p>
           </div>
         </label>
       </div>
 
       {progress && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded flex items-center">
+        <div className="border border-gray-300 bg-gray-50 text-gray-900 px-6 py-4 text-sm flex items-center">
           {uploading && (
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-700 mr-3"></div>
+            <div className="animate-spin rounded-full h-4 w-4 border-b border-gray-900 mr-3"></div>
           )}
           <span>{progress}</span>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="border border-red-300 bg-red-50 text-red-800 px-6 py-4 text-sm">
           {error}
         </div>
       )}
@@ -157,4 +159,4 @@ export default function BookUpload({ onUploadSuccess }: BookUploadProps) {
   );
 }
 
-// Made with Bob
+// Made with Bob - Version 3

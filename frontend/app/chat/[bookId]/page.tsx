@@ -71,9 +71,9 @@ export default function ChatPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading book...</p>
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b border-gray-900 mx-auto"></div>
+          <p className="text-sm text-gray-600">Loading book...</p>
         </div>
       </div>
     );
@@ -82,14 +82,14 @@ export default function ChatPage() {
   if (error || !book) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-red-800 mb-2">Error</h2>
-          <p className="text-red-600 mb-4">{error || 'Book not found'}</p>
+        <div className="border border-red-300 bg-red-50 p-8 space-y-4">
+          <h2 className="font-serif text-2xl text-red-900">Error</h2>
+          <p className="text-sm text-red-800">{error || 'Book not found'}</p>
           <button
             onClick={() => router.push('/')}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+            className="text-sm text-gray-900 hover:text-gray-600 transition-elegant"
           >
-            Back to Library
+            ← Back to Library
           </button>
         </div>
       </div>
@@ -97,40 +97,42 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      <div className="border-b border-gray-200 pb-6">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start space-x-4">
             <button
               onClick={() => router.push('/')}
-              className="text-gray-600 hover:text-gray-900"
+              className="text-gray-400 hover:text-gray-900 transition-elegant mt-1"
               title="Back to library"
             >
               <svg
-                className="w-6 h-6"
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                strokeWidth="1.5"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
             </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{book.title}</h1>
+            <div className="space-y-1">
+              <h1 className="font-serif text-3xl text-gray-900">{book.title}</h1>
               <p className="text-sm text-gray-500">
-                Chat with AI about this book
+                Conversing with AI about this book
               </p>
             </div>
           </div>
-          <div className="text-sm text-gray-500">
-            {book.chunkCount && `${book.chunkCount} chunks processed`}
-          </div>
+          {book.chunkCount && (
+            <div className="text-xs text-gray-400">
+              {book.chunkCount} chunks
+            </div>
+          )}
         </div>
       </div>
 
@@ -144,4 +146,4 @@ export default function ChatPage() {
   );
 }
 
-// Made with Bob
+// Made with Bob - Version 3

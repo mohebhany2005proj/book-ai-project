@@ -53,31 +53,33 @@ export default function ChatInterface({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md flex flex-col h-[calc(100vh-250px)]">
+    <div className="border border-gray-200 flex flex-col h-[calc(100vh-250px)]">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-16 space-y-6">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400 mb-4"
+              className="mx-auto h-12 w-12 text-gray-300"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              strokeWidth="1"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
                 d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
               />
             </svg>
-            <p className="text-lg font-medium">Start a conversation</p>
-            <p className="text-sm mt-2">
-              Ask questions about "{bookTitle}"
-            </p>
-            <div className="mt-6 text-left max-w-md mx-auto">
-              <p className="text-sm font-semibold mb-2">Example questions:</p>
-              <ul className="text-sm space-y-1 text-gray-600">
+            <div className="space-y-2">
+              <p className="font-serif text-xl text-gray-900">Start a conversation</p>
+              <p className="text-sm text-gray-500">
+                Ask questions about "{bookTitle}"
+              </p>
+            </div>
+            <div className="text-left max-w-md mx-auto space-y-3 pt-4">
+              <p className="text-xs text-gray-900 tracking-wide">EXAMPLE QUESTIONS</p>
+              <ul className="text-sm space-y-2 text-gray-600">
                 <li>• What is the main theme of this book?</li>
                 <li>• Who are the main characters?</li>
                 <li>• Can you summarize chapter 1?</li>
@@ -94,18 +96,18 @@ export default function ChatInterface({
               }`}
             >
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-3 ${
+                className={`max-w-[80%] px-5 py-4 ${
                   message.role === 'user'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-gray-100 text-gray-900'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-gray-50 text-gray-900'
                 }`}
                 dir={isArabic(message.content) ? 'rtl' : 'ltr'}
               >
-                <div className={`flex items-start ${isArabic(message.content) ? 'space-x-reverse' : ''} space-x-2`}>
+                <div className={`flex items-start ${isArabic(message.content) ? 'space-x-reverse' : ''} space-x-3`}>
                   {message.role === 'assistant' && (
                     <div className="flex-shrink-0 mt-1">
                       <svg
-                        className="w-5 h-5 text-primary-600"
+                        className="w-4 h-4 text-gray-400"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -115,17 +117,17 @@ export default function ChatInterface({
                   )}
                   <div className="flex-1">
                     {message.role === 'assistant' ? (
-                      <div className="prose prose-sm max-w-none" dir={isArabic(message.content) ? 'rtl' : 'ltr'}>
+                      <div className="prose prose-sm max-w-none prose-headings:font-serif prose-p:text-gray-900 prose-p:leading-relaxed" dir={isArabic(message.content) ? 'rtl' : 'ltr'}>
                         <ReactMarkdown>{message.content}</ReactMarkdown>
                       </div>
                     ) : (
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                     )}
                     <p
-                      className={`text-xs mt-1 ${
+                      className={`text-xs mt-2 ${
                         message.role === 'user'
-                          ? 'text-primary-100'
-                          : 'text-gray-500'
+                          ? 'text-gray-400'
+                          : 'text-gray-400'
                       }`}
                     >
                       {formatTime(message.timestamp)}
@@ -140,50 +142,52 @@ export default function ChatInterface({
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 p-4">
-        <form onSubmit={handleSubmit} className="flex space-x-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a question about the book... / اسأل سؤالاً عن الكتاب..."
-            disabled={sending}
-            dir={isArabic(input) ? 'rtl' : 'ltr'}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || sending}
-            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-          >
-            {sending ? (
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Sending...</span>
-              </div>
-            ) : (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                />
-              </svg>
-            )}
-          </button>
+      <div className="border-t border-gray-200 p-6 bg-white">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="flex space-x-3">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask a question about the book... / اسأل سؤالاً عن الكتاب..."
+              disabled={sending}
+              dir={isArabic(input) ? 'rtl' : 'ltr'}
+              className="flex-1 px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 disabled:bg-gray-50 disabled:cursor-not-allowed transition-elegant text-sm"
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || sending}
+              className="px-6 py-3 bg-gray-900 text-white hover:bg-gray-700 focus:outline-none disabled:bg-gray-300 disabled:cursor-not-allowed transition-elegant"
+            >
+              {sending ? (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b border-white"></div>
+                  <span className="text-sm">Sending...</span>
+                </div>
+              ) : (
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
+          <p className="text-xs text-gray-500">
+            The AI will answer based only on the book's content
+          </p>
         </form>
-        <p className="text-xs text-gray-500 mt-2">
-          The AI will answer based only on the book's content
-        </p>
       </div>
     </div>
   );
 }
 
-// Made with Bob
+// Made with Bob - Version 3

@@ -65,14 +65,6 @@ export default function Home() {
         <div className="py-8">
           <WaveGraphic />
         </div>
-
-        <div className="max-w-2xl mx-auto">
-          <p className="text-base md:text-lg text-gray-600 leading-relaxed">
-            We create intelligent experiences and conversational interfaces
-            <br />
-            that aim to delight and wonder.
-          </p>
-        </div>
       </section>
 
       {/* Upload Section */}

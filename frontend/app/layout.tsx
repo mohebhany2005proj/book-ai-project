@@ -66,7 +66,7 @@ export default function RootLayout({
                 <div className="space-y-2">
                   <p className="font-serif text-sm text-gray-900">Book AI</p>
                   <p className="text-xs text-gray-500 tracking-wide">
-                    An intelligent platform for conversing with your literary collection.
+                    Thank You
                   </p>
                 </div>
                 

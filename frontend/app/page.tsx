@@ -136,24 +136,29 @@ export default function Home() {
           </h2>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-12 text-gray-600">
-          <div className="space-y-4">
-            <h3 className="font-serif text-xl text-gray-900">Upload</h3>
-            <p className="text-sm leading-relaxed">
-              Upload your books in PDF, TXT, or DOCX format. Our system processes
-              and analyzes the content, creating an intelligent understanding of
-              the material.
-            </p>
-          </div>
-          
-          <div className="space-y-4">
-            <h3 className="font-serif text-xl text-gray-900">Converse</h3>
-            <p className="text-sm leading-relaxed">
-              Engage in natural conversations about your books. Ask questions,
-              explore themes, and discover insights powered by advanced AI that
-              understands the context and nuance of your literary collection.
-            </p>
-          </div>
+        <div className="max-w-2xl">
+          <ol className="space-y-3 text-gray-600">
+            <li className="flex items-start">
+              <span className="font-serif text-gray-400 mr-4 flex-shrink-0">01</span>
+              <span className="text-sm leading-relaxed">Upload a book (PDF, TXT, or DOCX format)</span>
+            </li>
+            <li className="flex items-start">
+              <span className="font-serif text-gray-400 mr-4 flex-shrink-0">02</span>
+              <span className="text-sm leading-relaxed">Wait for the AI to process and learn from the book</span>
+            </li>
+            <li className="flex items-start">
+              <span className="font-serif text-gray-400 mr-4 flex-shrink-0">03</span>
+              <span className="text-sm leading-relaxed">Click on the book to start chatting</span>
+            </li>
+            <li className="flex items-start">
+              <span className="font-serif text-gray-400 mr-4 flex-shrink-0">04</span>
+              <span className="text-sm leading-relaxed">Ask questions about the book's content</span>
+            </li>
+            <li className="flex items-start">
+              <span className="font-serif text-gray-400 mr-4 flex-shrink-0">05</span>
+              <span className="text-sm leading-relaxed">Get accurate answers based only on the book</span>
+            </li>
+          </ol>
         </div>
       </section>
     </div>

@@ -74,9 +74,6 @@ export default function RootLayout({
                   <p className="font-serif text-xs text-gray-400 italic tracking-wide">
                     Version 3.0
                   </p>
-                  <p className="text-xs text-gray-400">
-                    Made with Bob
-                  </p>
                 </div>
               </div>
             </div>

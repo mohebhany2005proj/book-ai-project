@@ -54,12 +54,11 @@ export default function Home() {
       <section className="text-center space-y-8 animate-fade-in">
         <div className="space-y-4">
           <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl text-gray-900 tracking-tight">
-            Book AI is an intelligent platform
-            <br />
-            for conversing with your
-            <br />
-            literary collection.
+            Welcome to Book AI
           </h1>
+          <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+            Upload your books and chat with AI trained on their content
+          </p>
         </div>
 
         {/* Wave Graphic */}

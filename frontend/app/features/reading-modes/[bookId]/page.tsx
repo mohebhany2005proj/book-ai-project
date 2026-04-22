@@ -42,11 +42,11 @@ export default function ReadingModesChatPage() {
 
   const generateWelcomeMessage = async (bookTitle: string) => {
     setGeneratingWelcome(true);
-    
+
     try {
       // Generate welcome message for each mode
       const welcomeMessages: ChatMessage[] = [];
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
       
       // Quick Mode Example
       const quickResponse = await fetch(`${apiUrl}/api/chat/${bookId}`, {

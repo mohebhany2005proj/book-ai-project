@@ -29,7 +29,7 @@ export default function SummaryCards({ bookId, bookTitle }: SummaryCardsProps) {
       setLoading(true);
       setError(null);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
       const response = await fetch(`${apiUrl}/api/summary-cards/${bookId}`);
       
       if (!response.ok) {

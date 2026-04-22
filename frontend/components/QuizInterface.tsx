@@ -35,7 +35,7 @@ export default function QuizInterface({ bookId, bookTitle }: QuizInterfaceProps)
       setLoading(true);
       setError(null);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
       const response = await fetch(`${apiUrl}/api/quiz/${bookId}`);
       
       if (!response.ok) {

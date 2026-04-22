@@ -46,15 +46,14 @@ export default function ReadingModesChatPage() {
     try {
       // Generate welcome message for each mode
       const welcomeMessages: ChatMessage[] = [];
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       
       // Quick Mode Example
-      const quickResponse = await fetch('/api/chat', {
+      const quickResponse = await fetch(`${apiUrl}/api/chat/${bookId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bookId,
           message: `Give me a quick overview of "${bookTitle}" in 3-5 bullet points`,
-          conversationHistory: [],
           readingMode: 'quick',
         }),
       });
@@ -63,19 +62,17 @@ export default function ReadingModesChatPage() {
         const quickData = await quickResponse.json();
         welcomeMessages.push({
           role: 'assistant',
-          content: `## ⚡ Quick Mode Example\n\nHere's how Quick Mode works - concise and to the point:\n\n${quickData.answer}`,
+          content: `## ⚡ Quick Mode Example\n\nHere's how Quick Mode works - concise and to the point:\n\n${quickData.response}`,
           timestamp: new Date(),
         });
       }
 
       // Deep Dive Mode Example
-      const deepResponse = await fetch('/api/chat', {
+      const deepResponse = await fetch(`${apiUrl}/api/chat/${bookId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bookId,
           message: `What is the main theme of "${bookTitle}"? Explain in detail.`,
-          conversationHistory: [],
           readingMode: 'deep',
         }),
       });
@@ -84,19 +81,17 @@ export default function ReadingModesChatPage() {
         const deepData = await deepResponse.json();
         welcomeMessages.push({
           role: 'assistant',
-          content: `## 🔍 Deep Dive Mode Example\n\nHere's how Deep Dive Mode works - comprehensive and detailed:\n\n${deepData.answer}`,
+          content: `## 🔍 Deep Dive Mode Example\n\nHere's how Deep Dive Mode works - comprehensive and detailed:\n\n${deepData.response}`,
           timestamp: new Date(),
         });
       }
 
       // Story Mode Example
-      const storyResponse = await fetch('/api/chat', {
+      const storyResponse = await fetch(`${apiUrl}/api/chat/${bookId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bookId,
           message: `Tell me about "${bookTitle}" in an engaging way`,
-          conversationHistory: [],
           readingMode: 'story',
         }),
       });
@@ -105,7 +100,7 @@ export default function ReadingModesChatPage() {
         const storyData = await storyResponse.json();
         welcomeMessages.push({
           role: 'assistant',
-          content: `## 📚 Story Mode Example\n\nHere's how Story Mode works - engaging and narrative:\n\n${storyData.answer}`,
+          content: `## 📚 Story Mode Example\n\nHere's how Story Mode works - engaging and narrative:\n\n${storyData.response}`,
           timestamp: new Date(),
         });
       }

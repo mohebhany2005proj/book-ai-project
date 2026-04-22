@@ -29,7 +29,8 @@ export default function SummaryCards({ bookId, bookTitle }: SummaryCardsProps) {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`http://localhost:3001/api/features/summary-cards/${bookId}`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${apiUrl}/api/features/summary-cards/${bookId}`);
       
       if (!response.ok) {
         throw new Error('Failed to load summary cards');

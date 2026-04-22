@@ -16,6 +16,8 @@ export default function ReadingModesChatPage() {
   const [readingMode, setReadingMode] = useState<ReadingMode>('quick');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showChat, setShowChat] = useState(false);
+  const [generatingWelcome, setGeneratingWelcome] = useState(false);
 
   useEffect(() => {
     loadBook();
@@ -26,12 +28,93 @@ export default function ReadingModesChatPage() {
       setLoading(true);
       const data = await bookApi.getById(bookId);
       setBook(data);
+      
+      // Auto-generate welcome message showcasing the modes
+      await generateWelcomeMessage(data.title);
     } catch (error) {
       console.error('Error loading book:', error);
       alert('Failed to load book. Redirecting to book selection...');
       router.push('/features/reading-modes');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const generateWelcomeMessage = async (bookTitle: string) => {
+    setGeneratingWelcome(true);
+    
+    try {
+      // Generate welcome message for each mode
+      const welcomeMessages: ChatMessage[] = [];
+      
+      // Quick Mode Example
+      const quickResponse = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookId,
+          message: `Give me a quick overview of "${bookTitle}" in 3-5 bullet points`,
+          conversationHistory: [],
+          readingMode: 'quick',
+        }),
+      });
+      
+      if (quickResponse.ok) {
+        const quickData = await quickResponse.json();
+        welcomeMessages.push({
+          role: 'assistant',
+          content: `## ⚡ Quick Mode Example\n\nHere's how Quick Mode works - concise and to the point:\n\n${quickData.answer}`,
+          timestamp: new Date(),
+        });
+      }
+
+      // Deep Dive Mode Example
+      const deepResponse = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookId,
+          message: `What is the main theme of "${bookTitle}"? Explain in detail.`,
+          conversationHistory: [],
+          readingMode: 'deep',
+        }),
+      });
+      
+      if (deepResponse.ok) {
+        const deepData = await deepResponse.json();
+        welcomeMessages.push({
+          role: 'assistant',
+          content: `## 🔍 Deep Dive Mode Example\n\nHere's how Deep Dive Mode works - comprehensive and detailed:\n\n${deepData.answer}`,
+          timestamp: new Date(),
+        });
+      }
+
+      // Story Mode Example
+      const storyResponse = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookId,
+          message: `Tell me about "${bookTitle}" in an engaging way`,
+          conversationHistory: [],
+          readingMode: 'story',
+        }),
+      });
+      
+      if (storyResponse.ok) {
+        const storyData = await storyResponse.json();
+        welcomeMessages.push({
+          role: 'assistant',
+          content: `## 📚 Story Mode Example\n\nHere's how Story Mode works - engaging and narrative:\n\n${storyData.answer}`,
+          timestamp: new Date(),
+        });
+      }
+
+      setMessages(welcomeMessages);
+    } catch (error) {
+      console.error('Error generating welcome:', error);
+    } finally {
+      setGeneratingWelcome(false);
     }
   };
 
@@ -86,10 +169,13 @@ export default function ReadingModesChatPage() {
     }
   };
 
-  if (loading) {
+  if (loading || generatingWelcome) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex flex-col justify-center items-center min-h-screen space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        <p className="text-gray-600">
+          {generatingWelcome ? 'Showcasing Smart Reading Modes...' : 'Loading...'}
+        </p>
       </div>
     );
   }
@@ -114,59 +200,57 @@ export default function ReadingModesChatPage() {
           </button>
         </div>
         <p className="text-sm text-gray-600">
-          Smart Reading Mode - Ask questions and get answers in your preferred style
+          Smart Reading Modes - See examples of all 3 modes below!
         </p>
       </div>
 
-      {/* Reading Mode Selector */}
-      <ReadingModeSelector
-        currentMode={readingMode}
-        onModeChange={setReadingMode}
-      />
-
-      {/* Mode Description */}
-      <div className="bg-gray-50 border border-gray-200 p-4">
-        <div className="flex items-start space-x-3">
-          <svg
-            className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <div className="text-sm text-gray-600">
-            {readingMode === 'quick' && (
-              <p>
-                <strong>Quick Mode:</strong> Get concise answers with key points in bullet format. 
-                Perfect for quick understanding and time-saving.
+      {/* Welcome Message */}
+      {messages.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 p-6 space-y-4">
+          <div className="flex items-start space-x-3">
+            <span className="text-3xl">✨</span>
+            <div className="flex-1">
+              <h3 className="font-serif text-lg text-gray-900 mb-2">
+                Welcome to Smart Reading Modes!
+              </h3>
+              <p className="text-sm text-gray-700 mb-4">
+                Below you'll see examples of all 3 reading modes answering the same question.
+                Each mode offers a different way to understand your book.
+                Use the normal chat button in your library to ask your own questions in any mode!
               </p>
-            )}
-            {readingMode === 'deep' && (
-              <p>
-                <strong>Deep Dive Mode:</strong> Receive comprehensive explanations with detailed 
-                analysis, examples, and connections between concepts.
-              </p>
-            )}
-            {readingMode === 'story' && (
-              <p>
-                <strong>Story Mode:</strong> Experience engaging, narrative-style responses that 
-                make the content memorable and enjoyable to read.
-              </p>
-            )}
+            </div>
           </div>
         </div>
+      )}
+
+      {/* Mode Examples */}
+      <div className="space-y-6">
+        {messages.map((message, index) => (
+          <div key={index} className="border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="prose prose-sm max-w-none">
+              <div dangerouslySetInnerHTML={{ __html: message.content.replace(/\n/g, '<br/>') }} />
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Chat Interface */}
-      <ChatInterface
-        messages={messages}
-        onSendMessage={handleSendMessage}
-        bookTitle={book.title}
-      />
+      {/* Call to Action */}
+      {messages.length > 0 && (
+        <div className="text-center py-8 border-t border-gray-200">
+          <p className="text-gray-700 mb-4">
+            Want to ask your own questions in any of these modes?
+          </p>
+          <button
+            onClick={() => router.push('/')}
+            className="px-8 py-4 bg-gray-900 text-white hover:bg-gray-700 transition-colors text-lg font-medium"
+          >
+            Go to Library →
+          </button>
+          <p className="text-sm text-gray-500 mt-3">
+            Use the chat button next to your book to start chatting in any mode
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -29,7 +29,7 @@ export default function SummaryCards({ bookId, bookTitle }: SummaryCardsProps) {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/summary-cards/${bookId}`);
+      const response = await fetch(`http://localhost:3001/api/features/summary-cards/${bookId}`);
       
       if (!response.ok) {
         throw new Error('Failed to load summary cards');

@@ -35,7 +35,7 @@ export default function QuizInterface({ bookId, bookTitle }: QuizInterfaceProps)
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/quiz/${bookId}`);
+      const response = await fetch(`http://localhost:3001/api/features/quiz/${bookId}`);
       
       if (!response.ok) {
         throw new Error('Failed to load quiz');

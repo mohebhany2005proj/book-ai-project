@@ -32,7 +32,7 @@ export default function BookInsightsDashboard({
       setError(null);
 
       // Call API to generate insights
-      const response = await fetch(`/api/insights/${bookId}`, {
+      const response = await fetch(`http://localhost:3001/api/features/insights/${bookId}`, {
         method: 'GET',
       });
 

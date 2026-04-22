@@ -29,7 +29,7 @@ export default function SpeedReadingView({ bookId, bookTitle }: SpeedReadingView
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/speed-reading/${bookId}`);
+      const response = await fetch(`http://localhost:3001/api/features/speed-reading/${bookId}`);
       
       if (!response.ok) {
         throw new Error('Failed to load speed reading content');

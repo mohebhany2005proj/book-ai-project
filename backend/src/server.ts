@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import bookRoutes from './routes/bookRoutes';
 import chatRoutes from './routes/chatRoutes';
+import featureRoutes from './routes/featureRoutes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { testBobConnection } from './config/llm';
 import { corsOptions } from './config/cors';
@@ -40,6 +41,7 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/books', bookRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api', featureRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

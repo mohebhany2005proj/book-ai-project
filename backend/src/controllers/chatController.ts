@@ -16,7 +16,7 @@ const ragService = new RAGService(parseInt(process.env.TOP_K_RESULTS || '5'));
  */
 export const chat = async (req: Request, res: Response) => {
   try {
-    const { bookId, message, conversationHistory }: ChatRequest = req.body;
+    const { bookId, message, conversationHistory, readingMode }: ChatRequest = req.body;
 
     // Validate input
     if (!bookId || !message) {
@@ -57,12 +57,13 @@ export const chat = async (req: Request, res: Response) => {
       console.log(`📝 Including ${conversationHistory.length} previous messages in context`);
     }
 
-    // Generate answer using RAG with conversation history
+    // Generate answer using RAG with conversation history and reading mode
     const response: ChatResponse = await ragService.answerQuestion(
       bookId,
       book.title,
       message,
-      conversationHistory || []
+      conversationHistory || [],
+      readingMode
     );
 
     res.json(response);

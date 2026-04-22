@@ -15,10 +15,13 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+export type ReadingMode = 'quick' | 'deep' | 'story';
+
 export interface ChatRequest {
   bookId: string;
   message: string;
   conversationHistory?: ChatMessage[];
+  readingMode?: ReadingMode;
 }
 
 export interface ChatResponse {

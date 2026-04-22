@@ -6,6 +6,7 @@ import { bookApi } from '../lib/api';
 import BookUpload from '../components/BookUpload';
 import BookList from '../components/BookList';
 import WaveGraphic from '../components/WaveGraphic';
+import FeatureCards from '../components/FeatureCards';
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -66,6 +67,9 @@ export default function Home() {
           <WaveGraphic />
         </div>
       </section>
+
+      {/* Feature Cards Section */}
+      <FeatureCards />
 
       {/* Upload Section */}
       <section className="space-y-8">

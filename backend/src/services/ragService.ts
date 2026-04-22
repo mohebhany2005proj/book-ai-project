@@ -1,7 +1,7 @@
 import { bobChat, BobChatMessage } from '../config/llm';
 import { EmbeddingService } from './embeddingService';
 import SimpleVectorStore from './simpleVectorStore';
-import { ChatResponse, ChatMessage } from '../types';
+import { ChatResponse, ChatMessage, ReadingMode } from '../types';
 
 export class RAGService {
   private embeddingService: EmbeddingService;
@@ -91,13 +91,14 @@ export class RAGService {
   }
 
   /**
-   * Answer a question using RAG with conversation history
+   * Answer a question using RAG with conversation history and reading mode
    */
   async answerQuestion(
     bookId: string,
     bookTitle: string,
     question: string,
-    conversationHistory: ChatMessage[] = []
+    conversationHistory: ChatMessage[] = [],
+    readingMode?: ReadingMode
   ): Promise<ChatResponse> {
     try {
       console.log(`🤔 Processing question for book "${bookTitle}": ${question}`);
@@ -143,8 +144,8 @@ export class RAGService {
         .map((result, index) => `[${index + 1}] ${result.content}`)
         .join('\n\n');
 
-      // Create prompt with conversation history
-      const systemPrompt = this.createSystemPrompt(bookTitle, isArabic);
+      // Create prompt with conversation history and reading mode
+      const systemPrompt = this.createSystemPrompt(bookTitle, isArabic, readingMode);
       const userPrompt = this.createUserPrompt(context, question, conversationHistory, isArabic);
 
       const messages: BobChatMessage[] = [
@@ -183,11 +184,59 @@ export class RAGService {
   }
 
   /**
-   * Create system prompt for the AI with bilingual support
+   * Create system prompt for the AI with bilingual support and reading mode
    */
-  private createSystemPrompt(bookTitle: string, isArabic: boolean = false): string {
+  private createSystemPrompt(bookTitle: string, isArabic: boolean = false, readingMode?: ReadingMode): string {
+    let basePrompt = '';
+    let modeInstructions = '';
+
+    // Get mode-specific instructions
+    if (readingMode === 'quick') {
+      modeInstructions = isArabic
+        ? `\n\nوضع القراءة السريعة:
+- قدم إجابات موجزة ومركزة (3-5 نقاط رئيسية كحد أقصى)
+- استخدم النقاط (•) للأفكار الرئيسية
+- اجعل الفقرات قصيرة (2-3 جمل)
+- أضف قسم "## الخلاصة الرئيسية" في النهاية
+- ركز على الأفكار القابلة للتطبيق`
+        : `\n\nQUICK MODE:
+- Provide concise, focused answers (3-5 key points maximum)
+- Use bullet points (•) for main ideas
+- Keep paragraphs short (2-3 sentences)
+- Always include a "## Key Takeaway" section at the end
+- Focus on actionable insights`;
+    } else if (readingMode === 'deep') {
+      modeInstructions = isArabic
+        ? `\n\nوضع التحليل العميق:
+- قدم شروحات شاملة ومفصلة
+- أضف أمثلة وسياق من الكتاب
+- اشرح الروابط بين المفاهيم
+- استخدم أقسام منظمة (##، ###)
+- قدم أدلة داعمة من النص`
+        : `\n\nDEEP DIVE MODE:
+- Provide comprehensive, detailed explanations
+- Include relevant examples and context from the book
+- Explain connections between concepts
+- Use structured sections (##, ###)
+- Provide supporting evidence from the text`;
+    } else if (readingMode === 'story') {
+      modeInstructions = isArabic
+        ? `\n\nوضع القصة:
+- استخدم أسلوب سردي جذاب ومحادثة
+- أنشئ تدفقاً طبيعياً
+- أضف أوصافاً حية وتشبيهات
+- اجعل المحتوى لا يُنسى وجذاباً
+- استخدم تقنيات سرد القصص`
+        : `\n\nSTORY MODE:
+- Use engaging, conversational narrative style
+- Create a natural flow
+- Include vivid descriptions and analogies
+- Make content memorable and engaging
+- Use storytelling techniques`;
+    }
+
     if (isArabic) {
-      return `أنت مساعد ذكي متخصص في الإجابة على الأسئلة حول كتاب "${bookTitle}".
+      basePrompt = `أنت مساعد ذكي متخصص في الإجابة على الأسئلة حول كتاب "${bookTitle}".
 
 القواعد المهمة:
 1. أجب على الأسئلة بناءً فقط على السياق المقدم من الكتاب
@@ -200,13 +249,14 @@ export class RAGService {
 8. يمكنك فهم والإجابة على الأسئلة بالعربية والإنجليزية
 
 تنسيق الإجابة:
+- استخدم ## للعناوين الرئيسية
 - استخدم النقاط (•) للقوائم والنقاط الرئيسية
 - استخدم الفقرات للشروحات المفصلة
-- نظم المعلومات بشكل منطقي وسهل القراءة
+- نظم المعلومات بشكل منطقي وسهل القراءة${modeInstructions}
 
 هدفك هو مساعدة المستخدمين على فهم محتوى الكتاب بدقة.`;
     } else {
-      return `You are an AI assistant specialized in answering questions about the book "${bookTitle}".
+      basePrompt = `You are an AI assistant specialized in answering questions about the book "${bookTitle}".
 
 IMPORTANT RULES:
 1. Answer questions ONLY based on the context provided from the book
@@ -219,12 +269,15 @@ IMPORTANT RULES:
 8. You can understand and respond to questions in both English and Arabic
 
 Response Formatting:
+- Use ## for main headers
 - Use bullet points (•) for lists and key points
 - Use paragraphs for detailed explanations
-- Organize information logically and make it easy to read
+- Organize information logically and make it easy to read${modeInstructions}
 
 Your goal is to help users understand the book's content accurately.`;
     }
+
+    return basePrompt;
   }
 
   /**

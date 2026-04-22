@@ -33,7 +33,7 @@ export default function BookInsightsDashboard({
 
       // Call API to generate insights
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${apiUrl}/api/features/insights/${bookId}`, {
+      const response = await fetch(`${apiUrl}/api/insights/${bookId}`, {
         method: 'GET',
       });
 

@@ -155,7 +155,7 @@ export class DocumentProcessor {
   async processDocument(
     filepath: string,
     bookId: string
-  ): Promise<{ chunks: DocumentChunk[]; metadata: BookMetadata; fullText: string }> {
+  ): Promise<{ chunks: DocumentChunk[]; metadata?: BookMetadata; fullText: string }> {
     console.log(`📄 Processing document: ${filepath}`);
     
     const text = await this.parseDocument(filepath);
@@ -164,15 +164,22 @@ export class DocumentProcessor {
       throw new Error('Document is empty or could not be parsed');
     }
 
-    // Extract metadata from the full text
-    const filename = path.basename(filepath);
-    const metadata = await this.metadataExtractor.extractMetadata(text, filename);
-
-    // Create chunks
+    // Create chunks first (critical path)
     const chunks = this.chunkText(text, bookId);
     
     if (chunks.length === 0) {
       throw new Error('No chunks created from document');
+    }
+
+    // Try to extract metadata (optional, non-critical)
+    let metadata: BookMetadata | undefined;
+    try {
+      const filename = path.basename(filepath);
+      metadata = await this.metadataExtractor.extractMetadata(text, filename);
+      console.log(`✅ Metadata extracted successfully`);
+    } catch (error: any) {
+      console.warn(`⚠️  Metadata extraction failed, continuing without it:`, error.message);
+      metadata = undefined;
     }
 
     return {

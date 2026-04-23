@@ -121,11 +121,11 @@ export class RAGService {
       // Generate embedding for the question
       const queryEmbedding = await this.embeddingService.generateEmbedding(question);
 
-      // Search for relevant chunks (use more chunks if metadata available)
+      // Search for relevant chunks (safe defaults)
       const collectionName = `book_${bookId}`;
       const chunkCount = metadata
-        ? this.metadataExtractor.getOptimalChunkCount(metadata, 'chat')
-        : this.topK;
+        ? Math.min(this.metadataExtractor.getOptimalChunkCount(metadata, 'chat'), 15)
+        : 10; // Safe default, not too many
       
       const searchResults = await this.vectorStore.searchSimilar(
         collectionName,
@@ -172,10 +172,10 @@ export class RAGService {
       // Add current question
       messages.push({ role: 'user', content: userPrompt });
 
-      // Calculate proportional response length
+      // Safe token limit
       const maxTokens = metadata
-        ? this.metadataExtractor.calculateResponseLength(metadata, 'chat')
-        : 1500;
+        ? Math.min(this.metadataExtractor.calculateResponseLength(metadata, 'chat'), 2000)
+        : 1500; // Safe default
 
       // Generate answer
       const answer = await bobChat(messages, 0.7, maxTokens);
@@ -275,19 +275,21 @@ export class RAGService {
 2. إذا لم تكن الإجابة في السياق المقدم، قل "هذه المعلومات غير مذكورة في الكتاب"
 3. كن دقيقاً واستشهد بمعلومات محددة من السياق
 4. لا تختلق معلومات أو تستخدم معرفة خارجية
-5. قدم إجابات شاملة ومفصلة تتناسب مع حجم الكتاب
-6. إذا كان السياق غير واضح أو غير كافٍ، اعترف بهذا القيد
+5. قدم إجابات شاملة ومفصلة تتناسب مع حجم الكتاب (5-10 فقرات للكتب الطويلة)
+6. إذا كان السؤال غامضاً أو يحتاج توضيح، اطرح أسئلة توضيحية لفهم ما يريده المستخدم بالضبط
 7. استخدم النقاط والفقرات لتنظيم إجاباتك بشكل واضح
-8. يمكنك فهم والإجابة على الأسئلة بالعربية والإنجليزية
+8. يمكنك فهم والإجابة على الأسئلة بالعربية والإنجليزية بطلاقة تامة
+9. تفاعل بشكل طبيعي ومحادثة - اسأل المستخدم إذا احتجت مزيد من التفاصيل
 
 تنسيق الإجابة:
 - استخدم ## للعناوين الرئيسية
 - استخدم النقاط (•) للقوائم والنقاط الرئيسية
-- استخدم الفقرات للشروحات المفصلة
+- استخدم الفقرات للشروحات المفصلة (3-5 جمل لكل فقرة)
 - نظم المعلومات بشكل منطقي وسهل القراءة
-- قدم إجابات طويلة ومفصلة تعكس عمق محتوى الكتاب${modeInstructions}
+- قدم إجابات طويلة ومفصلة تعكس عمق محتوى الكتاب
+- اجعل الإجابات غنية بالمعلومات والتفاصيل${modeInstructions}
 
-هدفك هو مساعدة المستخدمين على فهم محتوى الكتاب بدقة وشمولية.`;
+هدفك هو مساعدة المستخدمين على فهم محتوى الكتاب بدقة وشمولية. كن محاوراً ممتازاً واطرح أسئلة عند الحاجة.`;
     } else {
       basePrompt = `You are an AI assistant specialized in answering questions about the book "${bookTitle}".${metadataContext}
 
@@ -296,19 +298,21 @@ IMPORTANT RULES:
 2. If the answer is not in the provided context, say "This information is not mentioned in the book"
 3. Be accurate and cite specific information from the context
 4. Do not make up information or use external knowledge
-5. Provide comprehensive, detailed answers proportional to the book's size
-6. If the context is unclear or insufficient, acknowledge this limitation
+5. Provide comprehensive, detailed answers proportional to the book's size (5-10 paragraphs for longer books)
+6. If a question is ambiguous or needs clarification, ask follow-up questions to understand exactly what the user wants
 7. Use bullet points and paragraphs to organize your answers clearly
-8. You can understand and respond to questions in both English and Arabic
+8. You can fluently understand and respond to questions in both English and Arabic
+9. Engage naturally and conversationally - ask the user if you need more details
 
 Response Formatting:
 - Use ## for main headers
 - Use bullet points (•) for lists and key points
-- Use paragraphs for detailed explanations
+- Use paragraphs for detailed explanations (3-5 sentences per paragraph)
 - Organize information logically and make it easy to read
-- Provide lengthy, detailed responses that reflect the depth of the book's content${modeInstructions}
+- Provide lengthy, detailed responses that reflect the depth of the book's content
+- Make answers rich with information and details${modeInstructions}
 
-Your goal is to help users understand the book's content accurately and comprehensively.`;
+Your goal is to help users understand the book's content accurately and comprehensively. Be an excellent conversationalist and ask questions when needed.`;
     }
 
     return basePrompt;

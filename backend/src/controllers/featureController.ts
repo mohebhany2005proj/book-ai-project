@@ -22,46 +22,44 @@ export const getInsights = async (req: Request, res: Response) => {
 
     const metadata = book.metadata;
     
-    // Get more context based on book size
+    // Safe chunk count with fallback
     const chunkCount = metadata
-      ? metadataExtractor.getOptimalChunkCount(metadata, 'insights')
-      : 25;
+      ? Math.min(metadataExtractor.getOptimalChunkCount(metadata, 'insights'), 20)
+      : 15; // Safe default
     
     const context = await ragService.getRelevantContext(id, 'summary themes characters key concepts', chunkCount);
     const combinedContext = context.join('\n\n');
 
-    // Calculate proportional response length
+    // Safe token limit with cap
     const maxTokens = metadata
-      ? metadataExtractor.calculateResponseLength(metadata, 'insights')
-      : 2000;
+      ? Math.min(metadataExtractor.calculateResponseLength(metadata, 'insights'), 2500)
+      : 2000; // Safe default
 
     const author = metadata?.author ? ` by ${metadata.author}` : '';
     const pages = metadata?.pageCount ? ` (${metadata.pageCount} pages)` : '';
 
-    // Generate comprehensive insights using AI
-    const prompt = `Analyze the book "${book.title}"${author}${pages} and extract COMPREHENSIVE insights in JSON format.
+    // Simplified, reliable prompt
+    const prompt = `Analyze the book "${book.title}"${author}${pages} and provide insights in JSON format.
 
 Book Content:
 ${combinedContext}
 
-Provide DETAILED analysis:
-1. A comprehensive summary (${Math.ceil((metadata?.pageCount || 100) / 50)} paragraphs minimum)
-2. Main themes (5-8 themes with detailed explanations)
-3. Key characters or entities (5-10 items with descriptions)
-4. Important quotes (8-12 quotes with context and significance)
-
-Make the analysis proportional to the book's ${metadata?.pageCount || 100} pages.
+Provide a detailed analysis with:
+1. A comprehensive summary (3-5 paragraphs covering the main ideas)
+2. Main themes (3-5 key themes with explanations)
+3. Key characters or entities (3-5 important ones with descriptions)
+4. Important quotes (5-7 memorable quotes with brief context)
 
 Respond ONLY with valid JSON in this exact format:
 {
-  "summary": "Comprehensive book summary here (multiple paragraphs)",
-  "themes": ["theme1: detailed explanation", "theme2: detailed explanation", ...],
-  "characters": ["character1: detailed description", "character2: detailed description", ...],
-  "keyQuotes": ["quote1 - context and significance", "quote2 - context and significance", ...]
+  "summary": "Multi-paragraph book summary here",
+  "themes": ["theme1: explanation", "theme2: explanation", "theme3: explanation"],
+  "characters": ["character1: description", "character2: description"],
+  "keyQuotes": ["quote1 - context", "quote2 - context"]
 }`;
 
     const messages: BobChatMessage[] = [
-      { role: 'system', content: 'You are a book analysis expert. Provide comprehensive, detailed analysis. Respond only with valid JSON.' },
+      { role: 'system', content: 'You are a book analysis expert. Provide detailed, comprehensive analysis. Respond only with valid JSON.' },
       { role: 'user', content: prompt },
     ];
 
@@ -108,33 +106,33 @@ export const getSummaryCards = async (req: Request, res: Response) => {
 
     const metadata = book.metadata;
     
-    // Get more context based on book size
+    // Safe chunk count with fallback
     const chunkCount = metadata
-      ? metadataExtractor.getOptimalChunkCount(metadata, 'summaryCards')
-      : 15;
+      ? Math.min(metadataExtractor.getOptimalChunkCount(metadata, 'summaryCards'), 15)
+      : 10; // Safe default
     
     const context = await ragService.getRelevantContext(id, 'main ideas key concepts chapters', chunkCount);
     const combinedContext = context.join('\n\n');
 
-    // Calculate card count based on book size
-    const cardCount = Math.min(15, Math.max(7, Math.ceil((metadata?.pageCount || 100) / 20)));
+    // Reasonable card count
+    const cardCount = 7; // Fixed, reliable count
     
-    // Calculate proportional response length
+    // Safe token limit
     const maxTokens = metadata
-      ? metadataExtractor.calculateResponseLength(metadata, 'summaryCards')
-      : 2000;
+      ? Math.min(metadataExtractor.calculateResponseLength(metadata, 'summaryCards'), 2000)
+      : 1500; // Safe default
 
-    // Generate cards using AI
-    const prompt = `Create ${cardCount} detailed visual summary cards for the book "${book.title}" (${metadata?.pageCount || 100} pages).
+    // Simplified prompt
+    const prompt = `Create ${cardCount} visual summary cards for the book "${book.title}".
 
 Content: ${combinedContext}
 
 Each card should have:
 - A short, catchy title (3-5 words)
-- A detailed, engaging description (2-4 sentences covering key points)
+- A detailed description (2-3 sentences with key insights)
 - An appropriate emoji icon
 
-Create cards that cover all major aspects of the book proportional to its ${metadata?.pageCount || 100} pages.
+Cover the main aspects of the book.
 
 Respond ONLY with valid JSON in this format:
 {
@@ -142,14 +140,14 @@ Respond ONLY with valid JSON in this format:
     {
       "id": 1,
       "title": "Card Title",
-      "content": "Detailed engaging description with key insights",
+      "content": "Detailed description with key insights",
       "icon": "📖"
     }
   ]
 }`;
 
     const messages: BobChatMessage[] = [
-      { role: 'system', content: 'You are a content summarization expert. Create comprehensive, detailed cards. Respond only with valid JSON.' },
+      { role: 'system', content: 'You are a content summarization expert. Create detailed, engaging cards. Respond only with valid JSON.' },
       { role: 'user', content: prompt },
     ];
 
@@ -198,34 +196,32 @@ export const getQuiz = async (req: Request, res: Response) => {
 
     const metadata = book.metadata;
     
-    // Get more context based on book size
+    // Safe chunk count with fallback
     const chunkCount = metadata
-      ? metadataExtractor.getOptimalChunkCount(metadata, 'quiz')
-      : 20;
+      ? Math.min(metadataExtractor.getOptimalChunkCount(metadata, 'quiz'), 15)
+      : 12; // Safe default
     
     const context = await ragService.getRelevantContext(id, 'main concepts facts details key points', chunkCount);
     const combinedContext = context.join('\n\n');
 
-    // Calculate question count based on book size
-    const questionCount = Math.min(30, Math.max(10, Math.ceil((metadata?.pageCount || 100) / 10)));
+    // Fixed, reliable question count
+    const questionCount = 10;
     
-    // Calculate proportional response length
+    // Safe token limit
     const maxTokens = metadata
-      ? metadataExtractor.calculateResponseLength(metadata, 'quiz')
-      : 3000;
+      ? Math.min(metadataExtractor.calculateResponseLength(metadata, 'quiz'), 2500)
+      : 2000; // Safe default
 
-    // Generate comprehensive quiz using AI
-    const prompt = `Create ${questionCount} comprehensive multiple-choice quiz questions about the book "${book.title}" (${metadata?.pageCount || 100} pages).
+    // Simplified prompt
+    const prompt = `Create ${questionCount} multiple-choice quiz questions about the book "${book.title}".
 
 Content: ${combinedContext}
 
 Each question should have:
-- A clear, thought-provoking question
-- 4 well-crafted options (A, B, C, D)
+- A clear question
+- 4 options (A, B, C, D)
 - The correct answer
-- A DETAILED explanation (3-5 sentences) explaining why the answer is correct and providing context from the book
-
-Cover all major aspects of the book proportional to its ${metadata?.pageCount || 100} pages.
+- A detailed explanation (2-3 sentences) explaining why the answer is correct
 
 Respond ONLY with valid JSON in this format:
 {
@@ -235,13 +231,13 @@ Respond ONLY with valid JSON in this format:
       "question": "Question text?",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctAnswer": "Option A",
-      "explanation": "Detailed explanation with context from the book..."
+      "explanation": "Detailed explanation with context..."
     }
   ]
 }`;
 
     const messages: BobChatMessage[] = [
-      { role: 'system', content: 'You are a quiz generator expert. Create comprehensive questions with detailed explanations. Respond only with valid JSON.' },
+      { role: 'system', content: 'You are a quiz generator expert. Create clear questions with detailed explanations. Respond only with valid JSON.' },
       { role: 'user', content: prompt },
     ];
 
@@ -291,51 +287,50 @@ export const getSpeedReading = async (req: Request, res: Response) => {
 
     const metadata = book.metadata;
     
-    // Get more context based on book size
+    // Safe chunk count with fallback
     const chunkCount = metadata
-      ? metadataExtractor.getOptimalChunkCount(metadata, 'speedReading')
-      : 30;
+      ? Math.min(metadataExtractor.getOptimalChunkCount(metadata, 'speedReading'), 20)
+      : 15; // Safe default
     
     const context = await ragService.getRelevantContext(id, 'key points main ideas chapters concepts', chunkCount);
     const combinedContext = context.join('\n\n');
 
-    // Calculate content amounts based on book size
-    const sentenceCount = Math.min(50, Math.max(15, Math.ceil((metadata?.pageCount || 100) / 5)));
-    const termCount = Math.min(25, Math.max(10, Math.ceil((metadata?.pageCount || 100) / 10)));
+    // Fixed, reliable counts
+    const sentenceCount = 15;
+    const termCount = 10;
     
-    // Calculate proportional response length
+    // Safe token limit
     const maxTokens = metadata
-      ? metadataExtractor.calculateResponseLength(metadata, 'speedReading')
-      : 3000;
+      ? Math.min(metadataExtractor.calculateResponseLength(metadata, 'speedReading'), 2500)
+      : 2000; // Safe default
 
-    // Generate comprehensive speed reading content using AI
-    const prompt = `Extract COMPREHENSIVE speed reading content from the book "${book.title}" (${metadata?.pageCount || 100} pages, ${metadata?.chapterCount || 1} chapters).
+    // Simplified prompt
+    const prompt = `Extract speed reading content from the book "${book.title}".
 
 Content: ${combinedContext}
 
-Provide DETAILED content proportional to the book's ${metadata?.pageCount || 100} pages:
-
-1. A comprehensive TL;DR summary (${Math.ceil((metadata?.pageCount || 100) / 50)} paragraphs)
-2. ${sentenceCount} most important sentences from throughout the book
-3. ${termCount} important terms with detailed definitions
-4. Detailed summaries for ALL ${metadata?.chapterCount || 1} chapters/sections
+Provide:
+1. A comprehensive TL;DR summary (3-4 paragraphs)
+2. ${sentenceCount} most important sentences from the book
+3. ${termCount} important terms with definitions
+4. Chapter summaries (3-5 main sections)
 
 Respond ONLY with valid JSON in this format:
 {
-  "tldr": "Comprehensive multi-paragraph summary",
+  "tldr": "Multi-paragraph summary",
   "keySentences": ["sentence1", "sentence2", ...],
   "importantTerms": [
-    {"term": "term1", "definition": "detailed definition with context"},
+    {"term": "term1", "definition": "definition with context"},
     ...
   ],
   "chapterSummaries": [
-    {"chapter": "Chapter 1", "summary": "detailed summary covering key points"},
+    {"chapter": "Chapter 1", "summary": "summary covering key points"},
     ...
   ]
 }`;
 
     const messages: BobChatMessage[] = [
-      { role: 'system', content: 'You are a speed reading expert. Provide comprehensive, detailed content. Respond only with valid JSON.' },
+      { role: 'system', content: 'You are a speed reading expert. Provide detailed, comprehensive content. Respond only with valid JSON.' },
       { role: 'user', content: prompt },
     ];
 

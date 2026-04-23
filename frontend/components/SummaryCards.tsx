@@ -1,13 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-interface SummaryCard {
-  id: number;
-  title: string;
-  content: string;
-  icon: string;
-}
+import { featureApi, SummaryCardItem } from '@/lib/api';
 
 interface SummaryCardsProps {
   bookId: string;
@@ -15,7 +9,7 @@ interface SummaryCardsProps {
 }
 
 export default function SummaryCards({ bookId, bookTitle }: SummaryCardsProps) {
-  const [cards, setCards] = useState<SummaryCard[]>([]);
+  const [cards, setCards] = useState<SummaryCardItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,14 +23,7 @@ export default function SummaryCards({ bookId, bookTitle }: SummaryCardsProps) {
       setLoading(true);
       setError(null);
 
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
-      const response = await fetch(`${apiUrl}/api/summary-cards/${bookId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to load summary cards');
-      }
-
-      const data = await response.json();
+      const data = await featureApi.getSummaryCards(bookId);
       setCards(data.cards || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load summary cards');

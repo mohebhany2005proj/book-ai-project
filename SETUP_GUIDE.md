@@ -48,11 +48,11 @@ npm install
 
 ### Backend Configuration
 
-The backend is already configured with your Bob API key in `backend/.env`:
+Configure your backend environment variables in `backend/.env`:
 
 ```env
 PORT=3001
-BOB_API_KEY=sk-m_HVZPMAVTMDIyv-dP_xSA
+BOB_API_KEY=your_api_key_here
 BOB_API_URL=https://api.bob.com/v1
 CHROMA_DB_PATH=./chroma_db
 UPLOAD_DIR=./uploads
@@ -62,7 +62,7 @@ CHUNK_OVERLAP=200
 TOP_K_RESULTS=5
 ```
 
-**Note:** The Bob API key is already set. If you need to change it, edit the `BOB_API_KEY` value.
+**Note:** Never commit real API keys to documentation or version control. Set `BOB_API_KEY` locally in `backend/.env`.
 
 ### Frontend Configuration
 
@@ -222,7 +222,7 @@ http://localhost:3000
 
 ## 🔐 Security Notes
 
-1. **API Key**: Your Bob API key is stored in `.env` file
+1. **API Key**: Your Bob API key should be stored only in the local `.env` file
    - Never commit `.env` files to version control
    - Keep your API key secret
 

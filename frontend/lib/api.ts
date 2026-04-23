@@ -133,13 +133,15 @@ export const chatApi = {
   sendMessage: async (
     bookId: string,
     message: string,
-    conversationHistory?: ChatMessage[]
+    conversationHistory?: ChatMessage[],
+    readingMode?: 'quick' | 'deep' | 'story'
   ): Promise<ChatResponse> => {
     try {
       const response = await api.post<ChatResponse>('/api/chat', {
         bookId,
         message,
         conversationHistory,
+        readingMode,
       });
 
       return response.data;
@@ -155,6 +157,85 @@ export const chatApi = {
   generateSummary: async (bookId: string): Promise<{ summary: string }> => {
     try {
       const response = await api.get(`/api/chat/summary/${bookId}`);
+      return response.data;
+    } catch (error) {
+      handleError(error as AxiosError<ErrorResponse>);
+      throw error;
+    }
+  },
+};
+
+export interface BookInsightsResponse {
+  themes: string[];
+  characters: string[];
+  keyQuotes: string[];
+  summary: string;
+}
+
+export interface SummaryCardItem {
+  id: number;
+  title: string;
+  content: string;
+  icon: string;
+}
+
+export interface SummaryCardsResponse {
+  cards: SummaryCardItem[];
+}
+
+export interface QuizQuestion {
+  id: number;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface QuizResponse {
+  questions: QuizQuestion[];
+}
+
+export interface SpeedReadingResponse {
+  tldr: string;
+  keySentences: string[];
+  importantTerms: { term: string; definition: string }[];
+  chapterSummaries: { chapter: string; summary: string }[];
+}
+
+export const featureApi = {
+  getInsights: async (bookId: string): Promise<BookInsightsResponse> => {
+    try {
+      const response = await api.get<BookInsightsResponse>(`/api/insights/${bookId}`);
+      return response.data;
+    } catch (error) {
+      handleError(error as AxiosError<ErrorResponse>);
+      throw error;
+    }
+  },
+
+  getSummaryCards: async (bookId: string): Promise<SummaryCardsResponse> => {
+    try {
+      const response = await api.get<SummaryCardsResponse>(`/api/summary-cards/${bookId}`);
+      return response.data;
+    } catch (error) {
+      handleError(error as AxiosError<ErrorResponse>);
+      throw error;
+    }
+  },
+
+  getQuiz: async (bookId: string): Promise<QuizResponse> => {
+    try {
+      const response = await api.get<QuizResponse>(`/api/quiz/${bookId}`);
+      return response.data;
+    } catch (error) {
+      handleError(error as AxiosError<ErrorResponse>);
+      throw error;
+    }
+  },
+
+  getSpeedReading: async (bookId: string): Promise<SpeedReadingResponse> => {
+    try {
+      const response = await api.get<SpeedReadingResponse>(`/api/speed-reading/${bookId}`);
       return response.data;
     } catch (error) {
       handleError(error as AxiosError<ErrorResponse>);

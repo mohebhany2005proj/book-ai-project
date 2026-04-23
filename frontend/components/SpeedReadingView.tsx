@@ -1,13 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-interface SpeedReadingContent {
-  tldr: string;
-  keySentences: string[];
-  importantTerms: { term: string; definition: string }[];
-  chapterSummaries: { chapter: string; summary: string }[];
-}
+import { featureApi, SpeedReadingResponse } from '@/lib/api';
 
 interface SpeedReadingViewProps {
   bookId: string;
@@ -15,7 +9,7 @@ interface SpeedReadingViewProps {
 }
 
 export default function SpeedReadingView({ bookId, bookTitle }: SpeedReadingViewProps) {
-  const [content, setContent] = useState<SpeedReadingContent | null>(null);
+  const [content, setContent] = useState<SpeedReadingResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sentences' | 'terms' | 'chapters'>('overview');
@@ -29,14 +23,7 @@ export default function SpeedReadingView({ bookId, bookTitle }: SpeedReadingView
       setLoading(true);
       setError(null);
 
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
-      const response = await fetch(`${apiUrl}/api/speed-reading/${bookId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to load speed reading content');
-      }
-
-      const data = await response.json();
+      const data = await featureApi.getSpeedReading(bookId);
       setContent(data);
     } catch (err: any) {
       setError(err.message || 'Failed to load content');
@@ -80,14 +67,14 @@ export default function SpeedReadingView({ bookId, bookTitle }: SpeedReadingView
       <div className="border-b border-gray-200">
         <nav className="flex space-x-8">
           {[
-            { id: 'overview', label: 'Overview', icon: '⚡' },
-            { id: 'sentences', label: 'Key Sentences', icon: '📝' },
-            { id: 'terms', label: 'Important Terms', icon: '📚' },
-            { id: 'chapters', label: 'Chapter Summaries', icon: '📖' },
+            { id: 'overview' as const, label: 'Overview', icon: '⚡' },
+            { id: 'sentences' as const, label: 'Key Sentences', icon: '📝' },
+            { id: 'terms' as const, label: 'Important Terms', icon: '📚' },
+            { id: 'chapters' as const, label: 'Chapter Summaries', icon: '📖' },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)}
               className={`
                 py-4 px-2 border-b-2 font-medium text-sm transition-colors
                 ${activeTab === tab.id

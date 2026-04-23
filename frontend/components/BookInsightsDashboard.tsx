@@ -1,13 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-interface BookInsights {
-  themes: string[];
-  characters: string[];
-  keyQuotes: string[];
-  summary: string;
-}
+import { featureApi, BookInsightsResponse } from '@/lib/api';
 
 interface BookInsightsDashboardProps {
   bookId: string;
@@ -18,7 +12,7 @@ export default function BookInsightsDashboard({
   bookId,
   bookTitle,
 }: BookInsightsDashboardProps) {
-  const [insights, setInsights] = useState<BookInsights | null>(null);
+  const [insights, setInsights] = useState<BookInsightsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,17 +25,7 @@ export default function BookInsightsDashboard({
       setLoading(true);
       setError(null);
 
-      // Call API to generate insights
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
-      const response = await fetch(`${apiUrl}/api/insights/${bookId}`, {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to load insights');
-      }
-
-      const data = await response.json();
+      const data = await featureApi.getInsights(bookId);
       setInsights(data);
     } catch (err: any) {
       setError(err.message || 'Failed to load insights');

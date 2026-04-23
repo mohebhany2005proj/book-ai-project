@@ -55,10 +55,10 @@ export default function Home() {
       <section className="text-center space-y-8 animate-fade-in">
         <div className="space-y-4">
           <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl text-gray-900 tracking-tight">
-            Welcome to Book AI
+            Welcome to Book AI / مرحباً بك في Book AI
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-            Upload your books and chat with AI trained on their content
+            Upload your books and chat with AI trained on their content / ارفع كتبك وتحدث مع ذكاء اصطناعي مدرّب على محتواها
           </p>
         </div>
 
@@ -75,7 +75,7 @@ export default function Home() {
       <section className="space-y-8">
         <div className="border-b border-gray-200 pb-4">
           <h2 className="font-serif text-3xl md:text-4xl text-gray-900">
-            Upload a Book
+            Upload a Book / ارفع كتاباً
           </h2>
         </div>
         <BookUpload onUploadSuccess={handleUploadSuccess} />
@@ -85,7 +85,7 @@ export default function Home() {
       <section className="space-y-8">
         <div className="border-b border-gray-200 pb-4">
           <h2 className="font-serif text-3xl md:text-4xl text-gray-900">
-            Your Library
+            Your Library / مكتبتك
           </h2>
         </div>
 
@@ -115,8 +115,8 @@ export default function Home() {
               />
             </svg>
             <div className="space-y-2">
-              <p className="font-serif text-xl text-gray-900">No books yet</p>
-              <p className="text-sm text-gray-500">Upload your first book to begin.</p>
+              <p className="font-serif text-xl text-gray-900">No books yet / لا توجد كتب بعد</p>
+              <p className="text-sm text-gray-500">Upload your first book to begin. / ارفع أول كتاب للبدء.</p>
             </div>
           </div>
         ) : (
@@ -128,7 +128,7 @@ export default function Home() {
       <section id="about" className="space-y-8 pt-12">
         <div className="border-b border-gray-200 pb-4">
           <h2 className="font-serif text-3xl md:text-4xl text-gray-900">
-            How It Works
+            How It Works / كيف يعمل
           </h2>
         </div>
         
@@ -136,23 +136,23 @@ export default function Home() {
           <ol className="space-y-3 text-gray-600">
             <li className="flex items-start">
               <span className="font-serif text-gray-400 mr-4 flex-shrink-0">01</span>
-              <span className="text-sm leading-relaxed">Upload a book (PDF, TXT, or DOCX format)</span>
+              <span className="text-sm leading-relaxed">Upload a book (PDF, TXT, or DOCX format) / ارفع كتاباً بصيغة PDF أو TXT أو DOCX</span>
             </li>
             <li className="flex items-start">
               <span className="font-serif text-gray-400 mr-4 flex-shrink-0">02</span>
-              <span className="text-sm leading-relaxed">Wait for the AI to process and learn from the book</span>
+              <span className="text-sm leading-relaxed">Wait for the AI to process and learn from the book / انتظر حتى يعالج الذكاء الاصطناعي الكتاب ويتعلم منه</span>
             </li>
             <li className="flex items-start">
               <span className="font-serif text-gray-400 mr-4 flex-shrink-0">03</span>
-              <span className="text-sm leading-relaxed">Click on the book to start chatting</span>
+              <span className="text-sm leading-relaxed">Click on the book to start chatting / اضغط على الكتاب لبدء المحادثة</span>
             </li>
             <li className="flex items-start">
               <span className="font-serif text-gray-400 mr-4 flex-shrink-0">04</span>
-              <span className="text-sm leading-relaxed">Ask questions about the book's content</span>
+              <span className="text-sm leading-relaxed">Ask questions about the book's content / اطرح أسئلة حول محتوى الكتاب</span>
             </li>
             <li className="flex items-start">
               <span className="font-serif text-gray-400 mr-4 flex-shrink-0">05</span>
-              <span className="text-sm leading-relaxed">Get accurate answers based only on the book</span>
+              <span className="text-sm leading-relaxed">Get accurate answers based only on the book / احصل على إجابات دقيقة مبنية فقط على الكتاب</span>
             </li>
           </ol>
         </div>

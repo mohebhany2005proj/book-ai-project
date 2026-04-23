@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import BookInsightsDashboard from '@/components/BookInsightsDashboard';
 import { bookApi } from '@/lib/api';
+import { Book } from '@/types';
 
 export default function InsightsBookPage() {
   const params = useParams();
   const router = useRouter();
   const bookId = params.bookId as string;
   
-  const [book, setBook] = useState<any>(null);
+  const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

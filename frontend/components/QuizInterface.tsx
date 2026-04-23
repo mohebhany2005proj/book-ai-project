@@ -1,14 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-interface QuizQuestion {
-  id: number;
-  question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
-}
+import { featureApi, QuizQuestion } from '@/lib/api';
 
 interface QuizInterfaceProps {
   bookId: string;
@@ -35,14 +28,7 @@ export default function QuizInterface({ bookId, bookTitle }: QuizInterfaceProps)
       setLoading(true);
       setError(null);
 
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
-      const response = await fetch(`${apiUrl}/api/quiz/${bookId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to load quiz');
-      }
-
-      const data = await response.json();
+      const data = await featureApi.getQuiz(bookId);
       setQuestions(data.questions || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load quiz');

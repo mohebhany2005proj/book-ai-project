@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Book AI - An Intelligent Literary Platform',
-  description: 'Upload books and engage in intelligent conversations with AI trained on their content',
+  title: 'Book AI | ذكاء الكتب',
+  description: 'Upload books and chat with AI in English and Arabic | ارفع الكتب وتحدث مع الذكاء الاصطناعي بالإنجليزية والعربية',
 }
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
                     href="/"
                     className="text-sm tracking-wide text-gray-900 hover:text-gray-600 transition-elegant"
                   >
-                    Books
+                    Books / الكتب
                   </a>
                 </div>
 
@@ -37,7 +37,7 @@ export default function RootLayout({
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
                       </svg>
                     </div>
-                    <span className="font-serif text-xl tracking-wide">Book AI</span>
+                    <span className="font-serif text-xl tracking-wide">Book AI / ذكاء الكتب</span>
                   </a>
                 </div>
 
@@ -47,7 +47,7 @@ export default function RootLayout({
                     href="#about"
                     className="text-sm tracking-wide text-gray-900 hover:text-gray-600 transition-elegant"
                   >
-                    Info
+                    Info / معلومات
                   </a>
                 </div>
               </div>
@@ -64,9 +64,9 @@ export default function RootLayout({
             <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-6 md:space-y-0">
                 <div className="space-y-2">
-                  <p className="font-serif text-sm text-gray-900">Book AI</p>
+                  <p className="font-serif text-sm text-gray-900">Book AI / ذكاء الكتب</p>
                   <p className="text-xs text-gray-500 tracking-wide">
-                    Thank You
+                    Thank You / شكراً لك
                   </p>
                 </div>
                 

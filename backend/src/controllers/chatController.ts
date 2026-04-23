@@ -2,13 +2,6 @@ import { Request, Response } from 'express';
 import { ChatRequest, ChatResponse } from '../types';
 import RAGService from '../services/ragService';
 
-// Import books storage from bookController
-import { Request as ExpressRequest } from 'express';
-
-// In-memory storage for books (should match bookController)
-// In production, use a shared database
-const books = new Map();
-
 const ragService = new RAGService(parseInt(process.env.TOP_K_RESULTS || '5'));
 
 /**

@@ -35,24 +35,32 @@ export const uploadBook = async (req: Request, res: Response) => {
     const file = req.file;
     const bookId = uuidv4();
     const collectionName = `book_${bookId}`;
+    
+    // Get custom title from request body (if provided)
+    const customTitle = req.body.title?.trim();
 
     console.log(`📚 Processing book upload: ${file.originalname}`);
+    if (customTitle) {
+      console.log(`   Custom title: "${customTitle}"`);
+    }
 
-    // Create book record
+    // Process document (now returns metadata and full text)
+    console.log('📄 Step 1: Parsing document and extracting metadata...');
+    const { chunks, metadata, fullText } = await documentProcessor.processDocument(file.path, bookId);
+
+    // Create book record with metadata
     const book: Book = {
       id: bookId,
-      title: path.basename(file.originalname, path.extname(file.originalname)),
+      title: customTitle || path.basename(file.originalname, path.extname(file.originalname)),
       filename: file.originalname,
       filepath: file.path,
       filesize: file.size,
       uploadDate: new Date(),
       collectionName,
+      chunkCount: chunks.length,
+      metadata,
+      fullText, // Store for preview functionality
     };
-
-    // Process document
-    console.log('📄 Step 1: Parsing document...');
-    const chunks = await documentProcessor.processDocument(file.path, bookId);
-    book.chunkCount = chunks.length;
 
     console.log(`📊 Processing ${chunks.length} chunks...`);
 
@@ -83,6 +91,10 @@ export const uploadBook = async (req: Request, res: Response) => {
     getBooks(req).set(bookId, book);
 
     console.log(`✅ Book "${book.title}" processed successfully!`);
+    if (metadata.author) {
+      console.log(`   Author: ${metadata.author}`);
+    }
+    console.log(`   Pages: ${metadata.pageCount}, Chapters: ${metadata.chapterCount}`);
 
     const response: UploadResponse = {
       success: true,
@@ -224,3 +236,70 @@ export const getBookStats = async (req: Request, res: Response) => {
 };
 
 // Made with Bob
+
+
+/**
+ * Get book preview (first N pages)
+ */
+export const getBookPreview = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const pages = parseInt(req.query.pages as string) || 20;
+    
+    const book = getBooks(req).get(id);
+
+    if (!book) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+
+    if (!book.fullText) {
+      return res.status(404).json({ error: 'Book text not available for preview' });
+    }
+
+    // Calculate preview length (approximate pages)
+    const wordsPerPage = 300;
+    const previewWords = pages * wordsPerPage;
+    const words = book.fullText.split(/\s+/);
+    const previewText = words.slice(0, previewWords).join(' ');
+
+    res.json({
+      bookId: id,
+      title: book.title,
+      preview: previewText,
+      totalPages: book.metadata?.pageCount || 0,
+      previewPages: pages,
+    });
+  } catch (error: any) {
+    console.error('❌ Error getting book preview:', error);
+    res.status(500).json({
+      error: 'Failed to retrieve book preview',
+      details: error.message,
+    });
+  }
+};
+
+/**
+ * Get book metadata
+ */
+export const getBookMetadata = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const book = getBooks(req).get(id);
+
+    if (!book) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+
+    res.json({
+      id: book.id,
+      title: book.title,
+      metadata: book.metadata || {},
+    });
+  } catch (error: any) {
+    console.error('❌ Error getting book metadata:', error);
+    res.status(500).json({
+      error: 'Failed to retrieve book metadata',
+      details: error.message,
+    });
+  }
+};

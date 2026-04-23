@@ -13,9 +13,11 @@ export default function BookUpload({ onUploadSuccess }: BookUploadProps) {
   const [progress, setProgress] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [customTitle, setCustomTitle] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = async (file: File) => {
+  const handleFileSelect = async (file: File, title?: string) => {
     // Validate file
     const validTypes = ['application/pdf', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!validTypes.includes(file.type)) {
@@ -35,7 +37,7 @@ export default function BookUpload({ onUploadSuccess }: BookUploadProps) {
 
     try {
       setProgress('Processing document...');
-      const response = await bookApi.upload(file);
+      const response = await bookApi.upload(file, title);
       
       if (response.success && response.book) {
         setProgress('Book uploaded successfully!');
@@ -45,6 +47,8 @@ export default function BookUpload({ onUploadSuccess }: BookUploadProps) {
         setTimeout(() => {
           setProgress('');
           setUploading(false);
+          setSelectedFile(null);
+          setCustomTitle('');
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
           }
@@ -60,7 +64,15 @@ export default function BookUpload({ onUploadSuccess }: BookUploadProps) {
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      handleFileSelect(file);
+      setSelectedFile(file);
+      setCustomTitle(file.name.replace(/\.[^/.]+$/, '')); // Set default title from filename
+      setError(null);
+    }
+  };
+
+  const handleUpload = () => {
+    if (selectedFile) {
+      handleFileSelect(selectedFile, customTitle.trim() || undefined);
     }
   };
 
@@ -81,7 +93,9 @@ export default function BookUpload({ onUploadSuccess }: BookUploadProps) {
 
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      handleFileSelect(file);
+      setSelectedFile(file);
+      setCustomTitle(file.name.replace(/\.[^/.]+$/, ''));
+      setError(null);
     }
   };
 
@@ -140,6 +154,51 @@ export default function BookUpload({ onUploadSuccess }: BookUploadProps) {
           </div>
         </label>
       </div>
+
+      {/* Show title input and upload button when file is selected */}
+      {selectedFile && !uploading && (
+        <div className="border border-gray-300 bg-white p-6 space-y-4">
+          <div>
+            <label className="block text-sm text-gray-700 mb-2 tracking-wide">
+              Book Title
+            </label>
+            <input
+              type="text"
+              value={customTitle}
+              onChange={(e) => setCustomTitle(e.target.value)}
+              placeholder="Enter book title"
+              className="w-full px-4 py-3 border border-gray-300 focus:outline-none focus:border-gray-900 transition-elegant text-gray-900"
+              disabled={uploading}
+            />
+            <p className="text-xs text-gray-500 mt-2 tracking-wide">
+              Leave empty to use filename: {selectedFile.name.replace(/\.[^/.]+$/, '')}
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleUpload}
+              disabled={uploading}
+              className="flex-1 bg-gray-900 text-white px-6 py-3 hover:bg-gray-700 transition-elegant disabled:opacity-50 disabled:cursor-not-allowed tracking-wide"
+            >
+              Upload Book
+            </button>
+            <button
+              onClick={() => {
+                setSelectedFile(null);
+                setCustomTitle('');
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
+              disabled={uploading}
+              className="px-6 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 transition-elegant disabled:opacity-50 disabled:cursor-not-allowed tracking-wide"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {progress && (
         <div className="border border-gray-300 bg-gray-50 text-gray-900 px-6 py-4 text-sm flex items-center">

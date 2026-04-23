@@ -1,16 +1,19 @@
 import { bobChat, BobChatMessage } from '../config/llm';
 import { EmbeddingService } from './embeddingService';
 import SimpleVectorStore from './simpleVectorStore';
-import { ChatResponse, ChatMessage, ReadingMode } from '../types';
+import { ChatResponse, ChatMessage, ReadingMode, BookMetadata } from '../types';
+import MetadataExtractor from './metadataExtractor';
 
 export class RAGService {
   private embeddingService: EmbeddingService;
   private vectorStore: SimpleVectorStore;
+  private metadataExtractor: MetadataExtractor;
   private topK: number;
 
-  constructor(topK: number = 5) {
+  constructor(topK: number = 20) { // Increased from 5 to 20 for better context
     this.embeddingService = new EmbeddingService();
     this.vectorStore = new SimpleVectorStore();
+    this.metadataExtractor = new MetadataExtractor();
     this.topK = topK;
   }
 
@@ -98,7 +101,8 @@ export class RAGService {
     bookTitle: string,
     question: string,
     conversationHistory: ChatMessage[] = [],
-    readingMode?: ReadingMode
+    readingMode?: ReadingMode,
+    metadata?: BookMetadata
   ): Promise<ChatResponse> {
     try {
       console.log(`🤔 Processing question for book "${bookTitle}": ${question}`);
@@ -117,12 +121,16 @@ export class RAGService {
       // Generate embedding for the question
       const queryEmbedding = await this.embeddingService.generateEmbedding(question);
 
-      // Search for relevant chunks
+      // Search for relevant chunks (use more chunks if metadata available)
       const collectionName = `book_${bookId}`;
+      const chunkCount = metadata
+        ? this.metadataExtractor.getOptimalChunkCount(metadata, 'chat')
+        : this.topK;
+      
       const searchResults = await this.vectorStore.searchSimilar(
         collectionName,
         queryEmbedding,
-        this.topK
+        chunkCount
       );
 
       // Detect language
@@ -144,8 +152,8 @@ export class RAGService {
         .map((result, index) => `[${index + 1}] ${result.content}`)
         .join('\n\n');
 
-      // Create prompt with conversation history and reading mode
-      const systemPrompt = this.createSystemPrompt(bookTitle, isArabic, readingMode);
+      // Create prompt with conversation history, reading mode, and metadata
+      const systemPrompt = this.createSystemPrompt(bookTitle, isArabic, readingMode, metadata);
       const userPrompt = this.createUserPrompt(context, question, conversationHistory, isArabic);
 
       const messages: BobChatMessage[] = [
@@ -164,8 +172,13 @@ export class RAGService {
       // Add current question
       messages.push({ role: 'user', content: userPrompt });
 
+      // Calculate proportional response length
+      const maxTokens = metadata
+        ? this.metadataExtractor.calculateResponseLength(metadata, 'chat')
+        : 1500;
+
       // Generate answer
-      const answer = await bobChat(messages, 0.7, 1500);
+      const answer = await bobChat(messages, 0.7, maxTokens);
 
       // Extract sources
       const sources = searchResults.map(result => result.content.substring(0, 150) + '...');
@@ -184,11 +197,30 @@ export class RAGService {
   }
 
   /**
-   * Create system prompt for the AI with bilingual support and reading mode
+   * Create system prompt for the AI with bilingual support, reading mode, and metadata
    */
-  private createSystemPrompt(bookTitle: string, isArabic: boolean = false, readingMode?: ReadingMode): string {
+  private createSystemPrompt(
+    bookTitle: string,
+    isArabic: boolean = false,
+    readingMode?: ReadingMode,
+    metadata?: BookMetadata
+  ): string {
     let basePrompt = '';
     let modeInstructions = '';
+    let metadataContext = '';
+
+    // Add metadata context if available
+    if (metadata) {
+      const author = metadata.author ? ` by ${metadata.author}` : '';
+      const pages = metadata.pageCount ? `\n- Total Pages: ${metadata.pageCount}` : '';
+      const chapters = metadata.chapterCount ? `\n- Chapters: ${metadata.chapterCount}` : '';
+      const words = metadata.wordCount ? `\n- Word Count: ${metadata.wordCount.toLocaleString()}` : '';
+      const toc = metadata.tableOfContents ? `\n\nTable of Contents:\n${metadata.tableOfContents}` : '';
+      
+      metadataContext = isArabic
+        ? `\n\nمعلومات الكتاب:${author}${pages}${chapters}${words}${toc}`
+        : `\n\nBook Information:${author}${pages}${chapters}${words}${toc}`;
+    }
 
     // Get mode-specific instructions
     if (readingMode === 'quick') {
@@ -236,14 +268,14 @@ export class RAGService {
     }
 
     if (isArabic) {
-      basePrompt = `أنت مساعد ذكي متخصص في الإجابة على الأسئلة حول كتاب "${bookTitle}".
+      basePrompt = `أنت مساعد ذكي متخصص في الإجابة على الأسئلة حول كتاب "${bookTitle}".${metadataContext}
 
 القواعد المهمة:
 1. أجب على الأسئلة بناءً فقط على السياق المقدم من الكتاب
 2. إذا لم تكن الإجابة في السياق المقدم، قل "هذه المعلومات غير مذكورة في الكتاب"
 3. كن دقيقاً واستشهد بمعلومات محددة من السياق
 4. لا تختلق معلومات أو تستخدم معرفة خارجية
-5. اجعل الإجابات واضحة وموجزة
+5. قدم إجابات شاملة ومفصلة تتناسب مع حجم الكتاب
 6. إذا كان السياق غير واضح أو غير كافٍ، اعترف بهذا القيد
 7. استخدم النقاط والفقرات لتنظيم إجاباتك بشكل واضح
 8. يمكنك فهم والإجابة على الأسئلة بالعربية والإنجليزية
@@ -252,18 +284,19 @@ export class RAGService {
 - استخدم ## للعناوين الرئيسية
 - استخدم النقاط (•) للقوائم والنقاط الرئيسية
 - استخدم الفقرات للشروحات المفصلة
-- نظم المعلومات بشكل منطقي وسهل القراءة${modeInstructions}
+- نظم المعلومات بشكل منطقي وسهل القراءة
+- قدم إجابات طويلة ومفصلة تعكس عمق محتوى الكتاب${modeInstructions}
 
-هدفك هو مساعدة المستخدمين على فهم محتوى الكتاب بدقة.`;
+هدفك هو مساعدة المستخدمين على فهم محتوى الكتاب بدقة وشمولية.`;
     } else {
-      basePrompt = `You are an AI assistant specialized in answering questions about the book "${bookTitle}".
+      basePrompt = `You are an AI assistant specialized in answering questions about the book "${bookTitle}".${metadataContext}
 
 IMPORTANT RULES:
 1. Answer questions ONLY based on the context provided from the book
 2. If the answer is not in the provided context, say "This information is not mentioned in the book"
 3. Be accurate and cite specific information from the context
 4. Do not make up information or use external knowledge
-5. Keep answers clear and concise
+5. Provide comprehensive, detailed answers proportional to the book's size
 6. If the context is unclear or insufficient, acknowledge this limitation
 7. Use bullet points and paragraphs to organize your answers clearly
 8. You can understand and respond to questions in both English and Arabic
@@ -272,9 +305,10 @@ Response Formatting:
 - Use ## for main headers
 - Use bullet points (•) for lists and key points
 - Use paragraphs for detailed explanations
-- Organize information logically and make it easy to read${modeInstructions}
+- Organize information logically and make it easy to read
+- Provide lengthy, detailed responses that reflect the depth of the book's content${modeInstructions}
 
-Your goal is to help users understand the book's content accurately.`;
+Your goal is to help users understand the book's content accurately and comprehensively.`;
     }
 
     return basePrompt;
@@ -324,42 +358,70 @@ Your goal is to help users understand the book's content accurately.`;
   }
 
   /**
-   * Generate a summary of the book
+   * Generate a comprehensive summary of the book
    */
   async generateBookSummary(
     bookId: string,
     bookTitle: string,
-    maxChunks: number = 10
+    metadata?: BookMetadata
   ): Promise<string> {
     try {
       console.log(`📝 Generating summary for book "${bookTitle}"...`);
 
       const collectionName = `book_${bookId}`;
       
-      // Get first few chunks as they usually contain introduction
+      // Get more chunks based on book size
+      const chunkCount = metadata
+        ? this.metadataExtractor.getOptimalChunkCount(metadata, 'summary')
+        : 30;
+      
       const allDocs = await this.vectorStore.getAllDocuments(collectionName);
       
       if (allDocs.documents.length === 0) {
         return 'No content available to generate summary.';
       }
 
-      const chunks = allDocs.documents.slice(0, Math.min(maxChunks, allDocs.documents.length));
+      const chunks = allDocs.documents.slice(0, Math.min(chunkCount, allDocs.documents.length));
       const context = chunks.join('\n\n');
+
+      // Calculate proportional summary length
+      const maxTokens = metadata
+        ? this.metadataExtractor.calculateResponseLength(metadata, 'summary')
+        : 2500;
+
+      const author = metadata?.author ? ` by ${metadata.author}` : '';
+      const pages = metadata?.pageCount ? ` (${metadata.pageCount} pages)` : '';
+      const chapters = metadata?.chapterCount ? `, ${metadata.chapterCount} chapters` : '';
 
       const messages: BobChatMessage[] = [
         {
           role: 'system',
-          content: `You are a helpful assistant that creates concise summaries of books.`,
+          content: `You are a book analysis expert that creates comprehensive, detailed summaries.`,
         },
         {
           role: 'user',
-          content: `Based on the following excerpts from the book "${bookTitle}", provide a brief summary (2-3 paragraphs) of what the book is about:\n\n${context}`,
+          content: `Create a COMPREHENSIVE and DETAILED summary of the book "${bookTitle}"${author}${pages}${chapters}.
+
+Based on the following content from the book, provide:
+
+1. **Overview** (2-3 paragraphs): What the book is about, its main purpose and themes
+2. **Key Concepts** (detailed): Main ideas and arguments presented
+3. **Chapter Breakdown** (if applicable): Brief summary of major sections
+4. **Important Takeaways**: Key lessons and insights
+5. **Conclusion**: Overall significance and impact
+
+Make the summary proportional to the book's length - for a ${metadata?.pageCount || 100}-page book, provide approximately ${Math.ceil((metadata?.pageCount || 100) / 20)} pages worth of summary content.
+
+Book Content:
+${context}
+
+Provide a thorough, well-organized summary that captures the essence and depth of the book.`,
         },
       ];
 
-      const summary = await bobChat(messages, 0.7, 500);
+      const summary = await bobChat(messages, 0.7, maxTokens);
       
-      console.log(`✅ Generated summary for "${bookTitle}"`);
+      console.log(`✅ Generated comprehensive summary for "${bookTitle}" (${maxTokens} tokens)`);
       return summary;
     } catch (error: any) {
       console.error('❌ Error generating summary:', error.message);

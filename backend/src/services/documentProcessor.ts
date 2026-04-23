@@ -2,15 +2,18 @@ import fs from 'fs';
 import path from 'path';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
-import { DocumentChunk } from '../types';
+import { DocumentChunk, BookMetadata } from '../types';
+import MetadataExtractor from './metadataExtractor';
 
 export class DocumentProcessor {
   private chunkSize: number;
   private chunkOverlap: number;
+  private metadataExtractor: MetadataExtractor;
 
   constructor(chunkSize: number = 1000, chunkOverlap: number = 200) {
     this.chunkSize = chunkSize;
     this.chunkOverlap = chunkOverlap;
+    this.metadataExtractor = new MetadataExtractor();
   }
 
   /**
@@ -147,9 +150,12 @@ export class DocumentProcessor {
   }
 
   /**
-   * Process entire document: parse and chunk
+   * Process entire document: parse, extract metadata, and chunk
    */
-  async processDocument(filepath: string, bookId: string): Promise<DocumentChunk[]> {
+  async processDocument(
+    filepath: string,
+    bookId: string
+  ): Promise<{ chunks: DocumentChunk[]; metadata: BookMetadata; fullText: string }> {
     console.log(`📄 Processing document: ${filepath}`);
     
     const text = await this.parseDocument(filepath);
@@ -158,13 +164,22 @@ export class DocumentProcessor {
       throw new Error('Document is empty or could not be parsed');
     }
 
+    // Extract metadata from the full text
+    const filename = path.basename(filepath);
+    const metadata = await this.metadataExtractor.extractMetadata(text, filename);
+
+    // Create chunks
     const chunks = this.chunkText(text, bookId);
     
     if (chunks.length === 0) {
       throw new Error('No chunks created from document');
     }
 
-    return chunks;
+    return {
+      chunks,
+      metadata,
+      fullText: text, // Store full text for preview functionality
+    };
   }
 
   /**

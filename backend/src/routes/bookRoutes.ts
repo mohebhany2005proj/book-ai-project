@@ -5,6 +5,8 @@ import {
   getBook,
   deleteBook,
   getBookStats,
+  getBookPreview,
+  getBookMetadata,
 } from '../controllers/bookController';
 import upload from '../middleware/upload';
 import { asyncHandler } from '../middleware/errorHandler';
@@ -20,11 +22,17 @@ router.get('/', asyncHandler(getAllBooks));
 // Get a specific book
 router.get('/:id', asyncHandler(getBook));
 
-// Delete a book
-router.delete('/:id', asyncHandler(deleteBook));
+// Get book preview
+router.get('/:id/preview', asyncHandler(getBookPreview));
+
+// Get book metadata
+router.get('/:id/metadata', asyncHandler(getBookMetadata));
 
 // Get book statistics
 router.get('/:id/stats', asyncHandler(getBookStats));
+
+// Delete a book
+router.delete('/:id', asyncHandler(deleteBook));
 
 export default router;
 

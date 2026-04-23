@@ -24,12 +24,15 @@ const handleError = (error: AxiosError<ErrorResponse>) => {
 // Book API
 export const bookApi = {
   /**
-   * Upload a new book
+   * Upload a new book with optional custom title
    */
-  upload: async (file: File): Promise<UploadResponse> => {
+  upload: async (file: File, title?: string): Promise<UploadResponse> => {
     try {
       const formData = new FormData();
       formData.append('book', file);
+      if (title) {
+        formData.append('title', title);
+      }
 
       const response = await api.post<UploadResponse>('/api/books/upload', formData, {
         headers: {
@@ -37,6 +40,32 @@ export const bookApi = {
         },
       });
 
+      return response.data;
+    } catch (error) {
+      handleError(error as AxiosError<ErrorResponse>);
+      throw error;
+    }
+  },
+
+  /**
+   * Get book preview
+   */
+  getPreview: async (id: string, pages: number = 20): Promise<any> => {
+    try {
+      const response = await api.get(`/api/books/${id}/preview?pages=${pages}`);
+      return response.data;
+    } catch (error) {
+      handleError(error as AxiosError<ErrorResponse>);
+      throw error;
+    }
+  },
+
+  /**
+   * Get book metadata
+   */
+  getMetadata: async (id: string): Promise<any> => {
+    try {
+      const response = await api.get(`/api/books/${id}/metadata`);
       return response.data;
     } catch (error) {
       handleError(error as AxiosError<ErrorResponse>);

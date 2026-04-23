@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import { bobChat, BobChatMessage } from '../config/llm';
 import RAGService from '../services/ragService';
+import MetadataExtractor from '../services/metadataExtractor';
 
 const ragService = new RAGService();
+const metadataExtractor = new MetadataExtractor();
 
 /**
  * Get book insights (themes, characters, quotes, summary)
@@ -18,36 +20,52 @@ export const getInsights = async (req: Request, res: Response) => {
 
     console.log(`📊 Generating insights for book "${book.title}"...`);
 
-    // Get relevant context from the book
-    const context = await ragService.getRelevantContext(id, 'summary themes characters', 10);
+    const metadata = book.metadata;
+    
+    // Get more context based on book size
+    const chunkCount = metadata
+      ? metadataExtractor.getOptimalChunkCount(metadata, 'insights')
+      : 25;
+    
+    const context = await ragService.getRelevantContext(id, 'summary themes characters key concepts', chunkCount);
     const combinedContext = context.join('\n\n');
 
-    // Generate insights using AI
-    const prompt = `Analyze the following book content and extract insights in JSON format.
+    // Calculate proportional response length
+    const maxTokens = metadata
+      ? metadataExtractor.calculateResponseLength(metadata, 'insights')
+      : 2000;
 
-Book: "${book.title}"
-Content: ${combinedContext}
+    const author = metadata?.author ? ` by ${metadata.author}` : '';
+    const pages = metadata?.pageCount ? ` (${metadata.pageCount} pages)` : '';
 
-Provide:
-1. A brief summary (2-3 sentences)
-2. Main themes (3-5 themes)
-3. Key characters or entities (if applicable, 3-5 items)
-4. Important quotes (3-5 quotes)
+    // Generate comprehensive insights using AI
+    const prompt = `Analyze the book "${book.title}"${author}${pages} and extract COMPREHENSIVE insights in JSON format.
+
+Book Content:
+${combinedContext}
+
+Provide DETAILED analysis:
+1. A comprehensive summary (${Math.ceil((metadata?.pageCount || 100) / 50)} paragraphs minimum)
+2. Main themes (5-8 themes with detailed explanations)
+3. Key characters or entities (5-10 items with descriptions)
+4. Important quotes (8-12 quotes with context and significance)
+
+Make the analysis proportional to the book's ${metadata?.pageCount || 100} pages.
 
 Respond ONLY with valid JSON in this exact format:
 {
-  "summary": "Brief book summary here",
-  "themes": ["theme1", "theme2", "theme3"],
-  "characters": ["character1", "character2"],
-  "keyQuotes": ["quote1", "quote2", "quote3"]
+  "summary": "Comprehensive book summary here (multiple paragraphs)",
+  "themes": ["theme1: detailed explanation", "theme2: detailed explanation", ...],
+  "characters": ["character1: detailed description", "character2: detailed description", ...],
+  "keyQuotes": ["quote1 - context and significance", "quote2 - context and significance", ...]
 }`;
 
     const messages: BobChatMessage[] = [
-      { role: 'system', content: 'You are a book analysis expert. Respond only with valid JSON.' },
+      { role: 'system', content: 'You are a book analysis expert. Provide comprehensive, detailed analysis. Respond only with valid JSON.' },
       { role: 'user', content: prompt },
     ];
 
-    const response = await bobChat(messages, 0.3, 2000);
+    const response = await bobChat(messages, 0.3, maxTokens);
     
     // Parse JSON response
     let insights;
@@ -88,19 +106,35 @@ export const getSummaryCards = async (req: Request, res: Response) => {
 
     console.log(`🎴 Generating summary cards for book "${book.title}"...`);
 
-    // Get relevant context
-    const context = await ragService.getRelevantContext(id, 'main ideas key concepts', 8);
+    const metadata = book.metadata;
+    
+    // Get more context based on book size
+    const chunkCount = metadata
+      ? metadataExtractor.getOptimalChunkCount(metadata, 'summaryCards')
+      : 15;
+    
+    const context = await ragService.getRelevantContext(id, 'main ideas key concepts chapters', chunkCount);
     const combinedContext = context.join('\n\n');
 
+    // Calculate card count based on book size
+    const cardCount = Math.min(15, Math.max(7, Math.ceil((metadata?.pageCount || 100) / 20)));
+    
+    // Calculate proportional response length
+    const maxTokens = metadata
+      ? metadataExtractor.calculateResponseLength(metadata, 'summaryCards')
+      : 2000;
+
     // Generate cards using AI
-    const prompt = `Create 5-7 visual summary cards for the book "${book.title}".
+    const prompt = `Create ${cardCount} detailed visual summary cards for the book "${book.title}" (${metadata?.pageCount || 100} pages).
 
 Content: ${combinedContext}
 
 Each card should have:
 - A short, catchy title (3-5 words)
-- A brief, engaging description (1-2 sentences)
+- A detailed, engaging description (2-4 sentences covering key points)
 - An appropriate emoji icon
+
+Create cards that cover all major aspects of the book proportional to its ${metadata?.pageCount || 100} pages.
 
 Respond ONLY with valid JSON in this format:
 {
@@ -108,18 +142,18 @@ Respond ONLY with valid JSON in this format:
     {
       "id": 1,
       "title": "Card Title",
-      "content": "Brief engaging description",
+      "content": "Detailed engaging description with key insights",
       "icon": "📖"
     }
   ]
 }`;
 
     const messages: BobChatMessage[] = [
-      { role: 'system', content: 'You are a content summarization expert. Respond only with valid JSON.' },
+      { role: 'system', content: 'You are a content summarization expert. Create comprehensive, detailed cards. Respond only with valid JSON.' },
       { role: 'user', content: prompt },
     ];
 
-    const response = await bobChat(messages, 0.7, 2000);
+    const response = await bobChat(messages, 0.7, maxTokens);
     
     let result;
     try {
@@ -162,20 +196,36 @@ export const getQuiz = async (req: Request, res: Response) => {
 
     console.log(`🎯 Generating quiz for book "${book.title}"...`);
 
-    // Get relevant context
-    const context = await ragService.getRelevantContext(id, 'main concepts facts details', 10);
+    const metadata = book.metadata;
+    
+    // Get more context based on book size
+    const chunkCount = metadata
+      ? metadataExtractor.getOptimalChunkCount(metadata, 'quiz')
+      : 20;
+    
+    const context = await ragService.getRelevantContext(id, 'main concepts facts details key points', chunkCount);
     const combinedContext = context.join('\n\n');
 
-    // Generate quiz using AI
-    const prompt = `Create 10 multiple-choice quiz questions about the book "${book.title}".
+    // Calculate question count based on book size
+    const questionCount = Math.min(30, Math.max(10, Math.ceil((metadata?.pageCount || 100) / 10)));
+    
+    // Calculate proportional response length
+    const maxTokens = metadata
+      ? metadataExtractor.calculateResponseLength(metadata, 'quiz')
+      : 3000;
+
+    // Generate comprehensive quiz using AI
+    const prompt = `Create ${questionCount} comprehensive multiple-choice quiz questions about the book "${book.title}" (${metadata?.pageCount || 100} pages).
 
 Content: ${combinedContext}
 
 Each question should have:
-- A clear question
-- 4 options (A, B, C, D)
+- A clear, thought-provoking question
+- 4 well-crafted options (A, B, C, D)
 - The correct answer
-- A brief explanation
+- A DETAILED explanation (3-5 sentences) explaining why the answer is correct and providing context from the book
+
+Cover all major aspects of the book proportional to its ${metadata?.pageCount || 100} pages.
 
 Respond ONLY with valid JSON in this format:
 {
@@ -185,17 +235,17 @@ Respond ONLY with valid JSON in this format:
       "question": "Question text?",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctAnswer": "Option A",
-      "explanation": "Why this is correct..."
+      "explanation": "Detailed explanation with context from the book..."
     }
   ]
 }`;
 
     const messages: BobChatMessage[] = [
-      { role: 'system', content: 'You are a quiz generator expert. Respond only with valid JSON.' },
+      { role: 'system', content: 'You are a quiz generator expert. Create comprehensive questions with detailed explanations. Respond only with valid JSON.' },
       { role: 'user', content: prompt },
     ];
 
-    const response = await bobChat(messages, 0.5, 3000);
+    const response = await bobChat(messages, 0.5, maxTokens);
     
     let result;
     try {
@@ -239,41 +289,57 @@ export const getSpeedReading = async (req: Request, res: Response) => {
 
     console.log(`⚡ Generating speed reading content for book "${book.title}"...`);
 
-    // Get relevant context
-    const context = await ragService.getRelevantContext(id, 'key points main ideas', 15);
+    const metadata = book.metadata;
+    
+    // Get more context based on book size
+    const chunkCount = metadata
+      ? metadataExtractor.getOptimalChunkCount(metadata, 'speedReading')
+      : 30;
+    
+    const context = await ragService.getRelevantContext(id, 'key points main ideas chapters concepts', chunkCount);
     const combinedContext = context.join('\n\n');
 
-    // Generate speed reading content using AI
-    const prompt = `Extract speed reading content from the book "${book.title}".
+    // Calculate content amounts based on book size
+    const sentenceCount = Math.min(50, Math.max(15, Math.ceil((metadata?.pageCount || 100) / 5)));
+    const termCount = Math.min(25, Math.max(10, Math.ceil((metadata?.pageCount || 100) / 10)));
+    
+    // Calculate proportional response length
+    const maxTokens = metadata
+      ? metadataExtractor.calculateResponseLength(metadata, 'speedReading')
+      : 3000;
+
+    // Generate comprehensive speed reading content using AI
+    const prompt = `Extract COMPREHENSIVE speed reading content from the book "${book.title}" (${metadata?.pageCount || 100} pages, ${metadata?.chapterCount || 1} chapters).
 
 Content: ${combinedContext}
 
-Provide:
-1. A one-paragraph TL;DR summary
-2. 10 most important sentences
-3. 5-7 important terms with definitions
-4. Brief summaries for main sections/chapters
+Provide DETAILED content proportional to the book's ${metadata?.pageCount || 100} pages:
+
+1. A comprehensive TL;DR summary (${Math.ceil((metadata?.pageCount || 100) / 50)} paragraphs)
+2. ${sentenceCount} most important sentences from throughout the book
+3. ${termCount} important terms with detailed definitions
+4. Detailed summaries for ALL ${metadata?.chapterCount || 1} chapters/sections
 
 Respond ONLY with valid JSON in this format:
 {
-  "tldr": "One paragraph summary",
+  "tldr": "Comprehensive multi-paragraph summary",
   "keySentences": ["sentence1", "sentence2", ...],
   "importantTerms": [
-    {"term": "term1", "definition": "definition1"},
+    {"term": "term1", "definition": "detailed definition with context"},
     ...
   ],
   "chapterSummaries": [
-    {"chapter": "Chapter 1", "summary": "brief summary"},
+    {"chapter": "Chapter 1", "summary": "detailed summary covering key points"},
     ...
   ]
 }`;
 
     const messages: BobChatMessage[] = [
-      { role: 'system', content: 'You are a speed reading expert. Respond only with valid JSON.' },
+      { role: 'system', content: 'You are a speed reading expert. Provide comprehensive, detailed content. Respond only with valid JSON.' },
       { role: 'user', content: prompt },
     ];
 
-    const response = await bobChat(messages, 0.3, 3000);
+    const response = await bobChat(messages, 0.3, maxTokens);
     
     let result;
     try {

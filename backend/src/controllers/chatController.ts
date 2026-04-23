@@ -57,13 +57,14 @@ export const chat = async (req: Request, res: Response) => {
       console.log(`📝 Including ${conversationHistory.length} previous messages in context`);
     }
 
-    // Generate answer using RAG with conversation history and reading mode
+    // Generate answer using RAG with conversation history, reading mode, and metadata
     const response: ChatResponse = await ragService.answerQuestion(
       bookId,
       book.title,
       message,
       conversationHistory || [],
-      readingMode
+      readingMode,
+      book.metadata // Pass metadata for enhanced context
     );
 
     res.json(response);
@@ -131,7 +132,7 @@ export const generateSummary = async (req: Request, res: Response) => {
 
     console.log(`📝 Generating summary for book "${book.title}"...`);
 
-    const summary = await ragService.generateBookSummary(id, book.title);
+    const summary = await ragService.generateBookSummary(id, book.title, book.metadata);
 
     res.json({
       bookId: id,

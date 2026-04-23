@@ -1,3 +1,19 @@
+export interface BookMetadata {
+  author?: string;
+  pageCount?: number;
+  chapterCount?: number;
+  chapters?: Array<{
+    number: number;
+    title: string;
+    startPage?: number;
+  }>;
+  wordCount: number;
+  estimatedReadingTime: number; // in minutes
+  tableOfContents?: string;
+  introduction?: string; // First few paragraphs
+  language?: string;
+}
+
 export interface Book {
   id: string;
   title: string;
@@ -7,6 +23,8 @@ export interface Book {
   uploadDate: Date;
   collectionName: string;
   chunkCount?: number;
+  metadata?: BookMetadata;
+  fullText?: string; // Store for preview functionality
 }
 
 export interface ChatMessage {
